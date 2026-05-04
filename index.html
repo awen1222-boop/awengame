@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X酒精路跑</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            color: #2980b9;
+        }
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .name-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .name-list input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2ecc71;
+        }
+        .btn-draw {
+            background-color: #e67e22;
+        }
+        .btn-draw:hover {
+            background-color: #f39c12;
+        }
+        .result-box {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #e8f8f5;
+            border-left: 5px solid #1abc9c;
+            border-radius: 4px;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        .captain {
+            color: #c0392b;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎮 X酒精路跑</h1>
+
+    <!-- 第一部分：分組系統 -->
+    <div class="card">
+        <h2>👥 隨機分隊 (3男3女 + 隨機隊長)</h2>
+        <div class="input-grid">
+            <div class="name-list">
+                <h3>男生名單</h3>
+                <input type="text" id="m1" placeholder="男生 1" value="MK">
+                <input type="text" id="m2" placeholder="男生 2" value="james">
+                <input type="text" id="m3" placeholder="男生 3" value="阿文">
+                <input type="text" id="m4" placeholder="男生 4" value="史迪">
+                <input type="text" id="m5" placeholder="男生 5" value="andy">
+                <input type="text" id="m6" placeholder="男生 6" value="台北E">
+            </div>
+            <div class="name-list">
+                <h3>女生名單</h3>
+                <input type="text" id="f1" placeholder="女生 1" value="Bella">
+                <input type="text" id="f2" placeholder="女生 2" value="琳琳">
+                <input type="text" id="f3" placeholder="女生 3" value="crystal">
+                <input type="text" id="f4" placeholder="女生 4" value="奇奇">
+                <input type="text" id="f5" placeholder="女生 5" value="cindy">
+                <input type="text" id="f6" placeholder="女生 6" value="台北D">
+            </div>
+        </div>
+        <button onclick="generateTeams()">一鍵隨機分隊</button>
+        <div id="team-result" class="result-box" style="display: none;"></div>
+    </div>
+
+    <!-- 第二部分：遊戲籤筒 -->
+    <div class="card">
+        <h2>🅰️ 遊戲籤筒 (30項遊戲)</h2>
+        <p>請在下方輸入遊戲內容（每行一項，系統會自動排除空白行）：</p>
+        <textarea id="boxA">遊戲1
+遊戲2
+遊戲3
+（請將此處替換為你的30項遊戲內容...）</textarea>
+        <button class="btn-draw" onclick="drawGame('boxA', 'resultA')">一鍵抽取 遊戲籤筒</button>
+        <div id="resultA" class="result-box" style="display: none;"></div>
+    </div>
+
+    <!-- 第三部分：酒精籤筒 -->
+    <div class="card">
+        <h2>🅱️ 酒精籤筒 (10項遊戲)</h2>
+        <p>請在下方輸入酒精內容（每行一項，系統會自動排除空白行）：</p>
+        <textarea id="boxB">酒精1
+酒精2
+酒精3
+（請將此處替換為你的10項酒精內容...）</textarea>
+        <button class="btn-draw" onclick="drawGame('boxB', 'resultB')">一鍵抽取 酒精籤筒</button>
+        <div id="resultB" class="result-box" style="display: none;"></div>
+    </div>
+
+    <script>
+        // 洗牌演算法 (Fisher-Yates Shuffle)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 產生分隊
+        function generateTeams() {
+            let males = [];
+            let females = [];
+            
+            // 讀取輸入的名字，若空白則帶入預設值
+            for(let i=1; i<=6; i++) {
+                males.push(document.getElementById('m'+i).value || '男生'+i);
+                females.push(document.getElementById('f'+i).value || '女生'+i);
+            }
+
+            // 打亂陣列
+            males = shuffleArray(males);
+            females = shuffleArray(females);
+
+            // 分配隊伍 (各3男3女)
+            let team1 = [...males.slice(0, 3), ...females.slice(0, 3)];
+            let team2 = [...males.slice(3, 6), ...females.slice(3, 6)];
+
+            // 隨機選出隊長 (0~5 之間的索引)
+            let cap1Index = Math.floor(Math.random() * 6);
+            let cap2Index = Math.floor(Math.random() * 6);
+
+            team1[cap1Index] = `<span class="captain">👑 ${team1[cap1Index]} (隊長)</span>`;
+            team2[cap2Index] = `<span class="captain">👑 ${team2[cap2Index]} (隊長)</span>`;
+
+            // 顯示結果
+            const resultDiv = document.getElementById('team-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <strong>🔴 第一隊：</strong><br>${team1.join('、')}<br><br>
+                <strong>🔵 第二隊：</strong><br>${team2.join('、')}
+            `;
+        }
+
+        // 抽籤邏輯
+        function drawGame(boxId, resultId) {
+            // 取得文字並以換行符號分割，過濾掉空白行
+            const text = document.getElementById(boxId).value;
+            const items = text.split('\n').map(item => item.trim()).filter(item => item !== '');
+
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.style.display = 'block';
+
+            if(items.length === 0) {
+                resultDiv.innerHTML = '<span style="color: red;">⚠️ 請先在上方輸入內容！</span>';
+                return;
+            }
+
+            // 隨機抽取一項
+            const randomIndex = Math.floor(Math.random() * items.length);
+            resultDiv.innerHTML = `🎯 <strong>抽中：</strong> ${items[randomIndex]}`;
+        }
+    </script>
+</body>
+</html>
