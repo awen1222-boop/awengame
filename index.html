@@ -66,6 +66,12 @@
         .btn-draw:hover {
             background-color: #f39c12;
         }
+        .btn-draw-drink {
+            background-color: #8e44ad; /* 換個顏色區分酒單 */
+        }
+        .btn-draw-drink:hover {
+            background-color: #9b59b6;
+        }
         .result-box {
             margin-top: 15px;
             padding: 15px;
@@ -123,26 +129,72 @@
 
     <!-- 第二部分：遊戲籤筒 -->
     <div class="card">
-        <h2>🅰️ 遊戲籤筒 (30項遊戲)</h2>
-        <p>請在下方輸入遊戲內容（每行一項，系統會自動排除空白行）：</p>
-        <textarea id="boxA">遊戲1
-遊戲2
-遊戲3
-（請將此處替換為你的30項遊戲內容...）</textarea>
-        <button class="btn-draw" onclick="drawGame('boxA', 'resultA')">一鍵抽取 遊戲籤筒</button>
+        <h2>🅰️ 遊戲籤筒 (行動關卡)</h2>
+        <p>行動指令如下：</p>
+        <textarea id="boxA">1 一人戴眼罩，另一人只能透過「扶肩膀」或「牽手」引導到下一間7-11。
+2 公主抱到下一關。(體力不支可以換人如全員男孩放棄需每人喝一杯)
+3 全隊男女手牽手到下一關
+4 全隊男女交錯搭火車到下一關
+5 一男一女兩兩手勾手橫著走到下一關
+6 拿一根吸管用嘴巴和鼻子夾住，如果中途吸管掉下來，懲罰蛙跳5下或開合跳10下
+7 便利商店買膠帶，兩人三腳走到下一關
+8 親親大亂鬥！全隊男女親親五秒「各自分組」不得與本來的伴侶執行遊戲
+9 老背少！挑一位男生背隊內年紀最小的女生走行至下一關，中間可換人但必須也是比女生年紀大者。
+10 愛的小秘密！隊內剪刀石頭布，最輸的兩個人與敵對進行真心話遊戲。回答一個私密問題。
+11 我殺豬養你呀！隊內挑選一位男性為敵對女性購買對方想吃的小零食，並以口對口餵敵方女生吃。
+12 老娘千杯不醉！隊內一位女生隨機找一位路人乾杯🍻並且說出「老娘千杯不醉」。
+13 一首歌的時間！隊內選出一位歌手，一路唱歌抵達下一站，中途如果歌曲結束下一關不管輸贏都要多喝一杯。
+14 魷魚🦑遊戲！全隊在人行道上尋找一根柱子玩123木頭人，最輸的下一站不管輸贏多喝一杯。
+15 愛上鐵達尼！隊內挑選一男一女擺出鐵達尼經典姿勢動作一路到下一關，路程中不能分開
+16 每隊自行選出一位女孩牽二位男孩到下一關(如人數過多可以 二組)
+17 每隊自行選出一位男孩牽二位女孩到下一關(如人數過多可以 二組)
+18 抽到此簽，隊伍男男互牽 女女互牽到下一關
+19 選出 ? 位戴著"頭套"到下一關
+20 隊長福利可自由選對方隊伍一位做任何事 ( 不得傷風敗俗，敗壞風氣)
+21 騎馬打仗二位男孩當馬兒，選一位女孩上馬到下一關</textarea>
+        <button class="btn-draw" onclick="drawGame('boxA', 'resultA')">一鍵抽取 遊戲籤</button>
         <div id="resultA" class="result-box" style="display: none;"></div>
     </div>
 
-    <!-- 第三部分：酒精籤筒 -->
+    <!-- 第三部分：喝酒遊戲籤筒 -->
     <div class="card">
-        <h2>🅱️ 酒精籤筒 (10項遊戲)</h2>
-        <p>請在下方輸入酒精內容（每行一項，系統會自動排除空白行）：</p>
-        <textarea id="boxB">酒精1
-酒精2
-酒精3
-（請將此處替換為你的10項酒精內容...）</textarea>
-        <button class="btn-draw" onclick="drawGame('boxB', 'resultB')">一鍵抽取 酒精籤筒</button>
+        <h2>🅱️ 喝酒遊戲籤筒 (駐點遊戲)</h2>
+        <p>喝酒規則如下：</p>
+        <textarea id="boxB">1 五、十、十五：兩人一組，喊中數字的人贏，輸的喝。
+2 我有你沒有：輪流說一件自己「沒做過」的事，有做過的人就喝。
+3 黑白配：經典手指方向遊戲，二人一組輸的的人喝。
+4 人緣好：大家數到三，指一個人，被指最多的人喝。
+5 大老二(簡易版)：每人抽一張牌，點數最小的三個人負責喝。
+6 成語接龍：上一家的最後一字接下一家的第一字，斷掉就喝。
+7 看誰比較快：所有人一起乾杯，最後放下的那個人要加碼喝。
+8 抓鬼遊戲：隊長當鬼，鬼做什麼動作大家要跟著做，最後做的與"隊長"一起喝。
+9 國王遊戲：抽籤當國王，國王可以指名 1~6 號中的任意組合喝。
+10 隊長指定：隊長指定敵對二位喝</textarea>
+        <button class="btn-draw" onclick="drawGame('boxB', 'resultB')">一鍵抽取 喝酒遊戲</button>
         <div id="resultB" class="result-box" style="display: none;"></div>
+    </div>
+
+    <!-- 第四部分：7-11 酒單籤筒 -->
+    <div class="card">
+        <h2>🍻 7-11 盲飲酒單籤筒</h2>
+        <p>到站不知道喝什麼？抽就對了：</p>
+        <textarea id="boxC">1 金牌台灣啤酒 (經典不敗)
+2 18天台灣生啤酒 (尚青推薦)
+3 Kirin 冰結 水果調酒 (果香氣泡)
+4 HOROYOI 微醉沙瓦 (妹酒首選)
+5 海尼根 Heineken
+6 百威啤酒 Budweiser
+7 檸檬堂 日式檸檬沙瓦
+8 韓國真露燒酒 (原味或隨機水果口味)
+9 SOMERSBY 夏日蜜蘋果酒
+10 WAT 瓶裝雞尾酒
+11 Asahi 朝日 Super Dry
+12 臺虎精釀系列 (現場隨機挑一款)
+13 Kirin 麒麟一番搾
+14 傑克丹尼 可樂威士忌調酒 (Jack & Cola 罐裝)
+15 絕對伏特加 Absolut (小樣酒系列)</textarea>
+        <button class="btn-draw btn-draw-drink" onclick="drawGame('boxC', 'resultC')">一鍵抽取 7-11 酒款</button>
+        <div id="resultC" class="result-box" style="display: none;"></div>
     </div>
 
     <script>
@@ -206,7 +258,7 @@
 
             // 隨機抽取一項
             const randomIndex = Math.floor(Math.random() * items.length);
-            resultDiv.innerHTML = `🎯 <strong>抽中：</strong> ${items[randomIndex]}`;
+            resultDiv.innerHTML = `🎯 <strong>抽中：</strong> <br><br> <span style="color:#d35400; font-size: 22px; font-weight: bold;">${items[randomIndex]}</span>`;
         }
     </script>
 </body>
