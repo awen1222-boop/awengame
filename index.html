@@ -45,6 +45,13 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+        .vip-section {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #fcf3cf;
+            border-radius: 5px;
+            border-left: 5px solid #f1c40f;
+        }
         button {
             background-color: #27ae60;
             color: white;
@@ -67,7 +74,7 @@
             background-color: #f39c12;
         }
         .btn-draw-drink {
-            background-color: #8e44ad; /* 換個顏色區分酒單 */
+            background-color: #8e44ad;
         }
         .btn-draw-drink:hover {
             background-color: #9b59b6;
@@ -102,7 +109,8 @@
 
     <!-- 第一部分：分組系統 -->
     <div class="card">
-        <h2>👥 隨機分隊 (3男3女 + 隨機隊長)</h2>
+        <h2>👥 隨機分隊 (含特別來賓機制)</h2>
+        
         <div class="input-grid">
             <div class="name-list">
                 <h3>男生名單</h3>
@@ -123,6 +131,13 @@
                 <input type="text" id="f6" placeholder="女生 6" value="台北D">
             </div>
         </div>
+        
+        <div class="vip-section">
+            <label style="font-weight:bold;">🌟 特別來賓 (將隨機加入任一隊伍)：</label>
+            <input type="text" id="vip" value="EC" style="padding: 5px; width: 100px; margin-left:10px;">
+            <div style="font-size: 14px; color: #7f8c8d; margin-top:5px;">💡 james 與 MK 擔任隊長的機率較其他人提升 20%</div>
+        </div>
+
         <button onclick="generateTeams()">一鍵隨機分隊</button>
         <div id="team-result" class="result-box" style="display: none;"></div>
     </div>
@@ -130,7 +145,6 @@
     <!-- 第二部分：遊戲籤筒 -->
     <div class="card">
         <h2>🅰️ 遊戲籤筒 (行動關卡)</h2>
-        <p>行動指令如下：</p>
         <textarea id="boxA">1 一人戴眼罩，另一人只能透過「扶肩膀」或「牽手」引導到下一間7-11。
 2 公主抱到下一關。(體力不支可以換人如全員男孩放棄需每人喝一杯)
 3 全隊男女手牽手到下一關
@@ -159,7 +173,6 @@
     <!-- 第三部分：喝酒遊戲籤筒 -->
     <div class="card">
         <h2>🅱️ 喝酒遊戲籤筒 (駐點遊戲)</h2>
-        <p>喝酒規則如下：</p>
         <textarea id="boxB">1 五、十、十五：兩人一組，喊中數字的人贏，輸的喝。
 2 我有你沒有：輪流說一件自己「沒做過」的事，有做過的人就喝。
 3 黑白配：經典手指方向遊戲，二人一組輸的的人喝。
@@ -177,7 +190,6 @@
     <!-- 第四部分：7-11 酒單籤筒 -->
     <div class="card">
         <h2>🍻 7-11 盲飲酒單籤筒</h2>
-        <p>到站不知道喝什麼？抽就對了：</p>
         <textarea id="boxC">1 金牌台灣啤酒 (經典不敗)
 2 18天台灣生啤酒 (尚青推薦)
 3 Kirin 冰結 水果調酒 (果香氣泡)
@@ -198,7 +210,7 @@
     </div>
 
     <script>
-        // 洗牌演算法 (Fisher-Yates Shuffle)
+        // 洗牌演算法
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -207,28 +219,68 @@
             return array;
         }
 
+        // 帶權重的隊長抽取器
+        function selectCaptain(team) {
+            let weights = [];
+            let totalWeight = 0;
+
+            // 給予權重：james 或是 MK 權重為 120 (多20%)，其他人為 100
+            for(let i = 0; i < team.length; i++) {
+                let name = team[i].trim();
+                if(name === 'james' || name === 'MK') {
+                    weights.push(120);
+                    totalWeight += 120;
+                } else {
+                    weights.push(100);
+                    totalWeight += 100;
+                }
+            }
+
+            // 根據權重抽取
+            let randomValue = Math.random() * totalWeight;
+            let currentSum = 0;
+            
+            for(let i = 0; i < team.length; i++) {
+                currentSum += weights[i];
+                if(randomValue <= currentSum) {
+                    return i;
+                }
+            }
+            return 0; // 防呆機制
+        }
+
         // 產生分隊
         function generateTeams() {
             let males = [];
             let females = [];
             
-            // 讀取輸入的名字，若空白則帶入預設值
+            // 讀取男女生
             for(let i=1; i<=6; i++) {
                 males.push(document.getElementById('m'+i).value || '男生'+i);
                 females.push(document.getElementById('f'+i).value || '女生'+i);
             }
+            
+            let vip = document.getElementById('vip').value || 'EC';
 
-            // 打亂陣列
+            // 打亂男女陣列
             males = shuffleArray(males);
             females = shuffleArray(females);
 
-            // 分配隊伍 (各3男3女)
+            // 分配隊伍 (初步各 3男 3女)
             let team1 = [...males.slice(0, 3), ...females.slice(0, 3)];
             let team2 = [...males.slice(3, 6), ...females.slice(3, 6)];
 
-            // 隨機選出隊長 (0~5 之間的索引)
-            let cap1Index = Math.floor(Math.random() * 6);
-            let cap2Index = Math.floor(Math.random() * 6);
+            // 決定 VIP 去哪一隊 (0 代表隊伍1，1 代表隊伍2)
+            let vipGoesTo = Math.floor(Math.random() * 2);
+            if(vipGoesTo === 0) {
+                team1.push(vip);
+            } else {
+                team2.push(vip);
+            }
+
+            // 抽取隊長 (套用權重邏輯)
+            let cap1Index = selectCaptain(team1);
+            let cap2Index = selectCaptain(team2);
 
             team1[cap1Index] = `<span class="captain">👑 ${team1[cap1Index]} (隊長)</span>`;
             team2[cap2Index] = `<span class="captain">👑 ${team2[cap2Index]} (隊長)</span>`;
@@ -237,14 +289,13 @@
             const resultDiv = document.getElementById('team-result');
             resultDiv.style.display = 'block';
             resultDiv.innerHTML = `
-                <strong>🔴 第一隊：</strong><br>${team1.join('、')}<br><br>
-                <strong>🔵 第二隊：</strong><br>${team2.join('、')}
+                <strong>🔴 第一隊 (${team1.length}人)：</strong><br>${team1.join('、')}<br><br>
+                <strong>🔵 第二隊 (${team2.length}人)：</strong><br>${team2.join('、')}
             `;
         }
 
         // 抽籤邏輯
         function drawGame(boxId, resultId) {
-            // 取得文字並以換行符號分割，過濾掉空白行
             const text = document.getElementById(boxId).value;
             const items = text.split('\n').map(item => item.trim()).filter(item => item !== '');
 
@@ -256,7 +307,6 @@
                 return;
             }
 
-            // 隨機抽取一項
             const randomIndex = Math.floor(Math.random() * items.length);
             resultDiv.innerHTML = `🎯 <strong>抽中：</strong> <br><br> <span style="color:#d35400; font-size: 22px; font-weight: bold;">${items[randomIndex]}</span>`;
         }
