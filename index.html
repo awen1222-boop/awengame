@@ -13,7 +13,6 @@
             margin: 0 auto;
             padding: 20px;
         }
-        /* 應景標題背景：啤酒黃金漸層 */
         header {
             background: linear-gradient(180deg, #f1c40f 0%, #e67e22 100%);
             padding: 40px 20px;
@@ -24,7 +23,6 @@
             position: relative;
             overflow: hidden;
         }
-        /* 模擬氣泡的小裝飾 */
         header::before {
             content: "◦ ◦ ◦ ◦ ◦";
             position: absolute;
@@ -92,12 +90,6 @@
         .btn-draw {
             background-color: #e67e22;
         }
-        .btn-draw:hover {
-            background-color: #f39c12;
-        }
-        .btn-draw-drink {
-            background-color: #8e44ad;
-        }
         .result-box {
             margin-top: 15px;
             padding: 15px;
@@ -107,6 +99,15 @@
             font-size: 18px;
             line-height: 1.6;
         }
+        .team-display {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+        }
+        .team-title { font-weight: bold; font-size: 20px; margin-bottom: 10px; display: block; }
+        .member-line { margin: 5px 0; }
         textarea {
             width: 100%;
             height: 150px;
@@ -115,10 +116,6 @@
             border-radius: 4px;
             box-sizing: border-box;
             resize: vertical;
-        }
-        .captain {
-            color: #c0392b;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -132,37 +129,38 @@
     <div class="card">
         <h2>👥 隨機分隊</h2>
         <div class="input-grid">
-            <div class="name-list">
+            <div class="name-list" id="male-inputs">
                 <h3>男生名單</h3>
-                <input type="text" id="m1" value="MK">
-                <input type="text" id="m2" value="james">
-                <input type="text" id="m3" value="阿文">
-                <input type="text" id="m4" value="史迪">
+                <input type="text" value="MK">
+                <input type="text" value="james">
+                <input type="text" value="阿文">
+                <input type="text" value="史迪">
                 <input type="text" id="m5" value="andy">
                 <input type="text" id="m6" value="台北E">
+                <input type="text" id="m7" value="楊過">
             </div>
-            <div class="name-list">
+            <div class="name-list" id="female-inputs">
                 <h3>女生名單</h3>
-                <input type="text" id="f1" value="Bella">
-                <input type="text" id="f2" value="琳琳">
-                <input type="text" id="f3" value="crystal">
-                <input type="text" id="f4" value="奇奇">
-                <input type="text" id="f5" value="cindy">
-                <input type="text" id="f6" value="台北D">
+                <input type="text" value="Bella">
+                <input type="text" value="琳琳">
+                <input type="text" value="crystal">
+                <input type="text" value="奇奇">
+                <input type="text" value="cindy">
+                <input type="text" value="台北D">
+                <input type="text" value="小龍女">
             </div>
         </div>
         
         <div class="vip-section">
             <label style="font-weight:bold;">🌟 特別來賓：</label>
             <input type="text" id="vip" value="EC" style="padding: 5px; width: 100px; margin-left:10px;">
-            <!-- 已隱藏權重說明文字 -->
         </div>
 
         <button onclick="generateTeams()">一鍵隨機分隊</button>
         <div id="team-result" class="result-box" style="display: none;"></div>
     </div>
 
-    <!-- 遊戲籤筒 -->
+    <!-- 遊戲、酒單籤筒保持原樣 -->
     <div class="card">
         <h2>🅰️ 遊戲籤筒 (行動關卡)</h2>
         <textarea id="boxA">1 一人戴眼罩，另一人只能透過「扶肩膀」或「牽手」引導到下一間7-11。
@@ -190,7 +188,6 @@
         <div id="resultA" class="result-box" style="display: none;"></div>
     </div>
 
-    <!-- 喝酒遊戲籤筒 -->
     <div class="card">
         <h2>🅱️ 喝酒遊戲籤筒 (駐點遊戲)</h2>
         <textarea id="boxB">1 五、十、十五
@@ -207,7 +204,6 @@
         <div id="resultB" class="result-box" style="display: none;"></div>
     </div>
 
-    <!-- 酒單籤筒 -->
     <div class="card">
         <h2>🍻 7-11 盲飲酒單籤筒</h2>
         <textarea id="boxC">1 金牌台灣啤酒
@@ -225,7 +221,7 @@
 13 Kirin 麒麟一番搾
 14 傑克丹尼 可樂威士忌調酒
 15 絕對伏特加 Absolut (小樣酒系列)</textarea>
-        <button class="btn-draw btn-draw-drink" onclick="drawGame('boxC', 'resultC')">一鍵抽取 7-11 酒款</button>
+        <button class="btn-draw" onclick="drawGame('boxC', 'resultC')">一鍵抽取 7-11 酒款</button>
         <div id="resultC" class="result-box" style="display: none;"></div>
     </div>
 
@@ -238,19 +234,15 @@
             return array;
         }
 
-        // 秘密的權重邏輯保留
         function selectCaptain(team) {
             let weights = [];
             let totalWeight = 0;
             for(let i = 0; i < team.length; i++) {
-                let name = team[i].trim();
-                // 悄悄提高 james 和 MK 的機率
+                let name = team[i].name.trim();
                 if(name === 'james' || name === 'MK') {
-                    weights.push(120);
-                    totalWeight += 120;
+                    weights.push(120); totalWeight += 120;
                 } else {
-                    weights.push(100);
-                    totalWeight += 100;
+                    weights.push(100); totalWeight += 100;
                 }
             }
             let randomValue = Math.random() * totalWeight;
@@ -262,32 +254,50 @@
             return 0;
         }
 
+        function formatTeamHTML(team, colorClass, title) {
+            // 分類隊員
+            const captain = team.find(m => m.isCaptain);
+            const males = team.filter(m => m.gender === 'M' && !m.isCaptain).map(m => m.name);
+            const females = team.filter(m => m.gender === 'F' && !m.isCaptain).map(m => m.name);
+
+            return `
+                <div class="team-display">
+                    <span class="team-title" style="color:${colorClass}">${title} (${team.length}人)</span>
+                    <div class="member-line">👑 <strong>隊長：</strong><span style="color:#c0392b; font-weight:bold;">${captain.name}</span></div>
+                    <div class="member-line">👦 <strong>男生：</strong>${males.join('、')}</div>
+                    <div class="member-line">👧 <strong>女生：</strong>${females.join('、')}</div>
+                </div>
+            `;
+        }
+
         function generateTeams() {
-            let males = [];
-            let females = [];
-            for(let i=1; i<=6; i++) {
-                males.push(document.getElementById('m'+i).value);
-                females.push(document.getElementById('f'+i).value);
-            }
+            let malePool = Array.from(document.querySelectorAll('#male-inputs input')).map(i => i.value).filter(v => v !== '');
+            let femalePool = Array.from(document.querySelectorAll('#female-inputs input')).map(i => i.value).filter(v => v !== '');
             let vip = document.getElementById('vip').value;
 
-            males = shuffleArray(males);
-            females = shuffleArray(females);
+            // 隨機打亂後各取 6 人 (維持 3M3F 兩隊的基本規模)
+            malePool = shuffleArray(malePool).slice(0, 6);
+            femalePool = shuffleArray(femalePool).slice(0, 6);
 
-            let team1 = [...males.slice(0, 3), ...females.slice(0, 3)];
-            let team2 = [...males.slice(3, 6), ...females.slice(3, 6)];
+            // 包裝成物件
+            let t1_m = malePool.slice(0, 3).map(n => ({name: n, gender: 'M'}));
+            let t2_m = malePool.slice(3, 6).map(n => ({name: n, gender: 'M'}));
+            let t1_f = femalePool.slice(0, 3).map(n => ({name: n, gender: 'F'}));
+            let t2_f = femalePool.slice(3, 6).map(n => ({name: n, gender: 'F'}));
 
-            if(Math.random() > 0.5) team1.push(vip); else team2.push(vip);
+            let team1 = [...t1_m, ...t1_f];
+            let team2 = [...t2_m, ...t2_f];
 
-            let cap1Index = selectCaptain(team1);
-            let cap2Index = selectCaptain(team2);
+            // VIP 加入
+            if(Math.random() > 0.5) team1.push({name: vip, gender: 'F'}); else team2.push({name: vip, gender: 'F'});
 
-            team1[cap1Index] = `<span class="captain">👑 ${team1[cap1Index]} (隊長)</span>`;
-            team2[cap2Index] = `<span class="captain">👑 ${team2[cap2Index]} (隊長)</span>`;
+            // 選隊長
+            team1[selectCaptain(team1)].isCaptain = true;
+            team2[selectCaptain(team2)].isCaptain = true;
 
             const resultDiv = document.getElementById('team-result');
             resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `<strong>🔴 第一隊：</strong><br>${team1.join('、')}<br><br><strong>🔵 第二隊：</strong><br>${team2.join('、')}`;
+            resultDiv.innerHTML = formatTeamHTML(team1, '#e74c3c', '🔴 第一隊') + formatTeamHTML(team2, '#3498db', '🔵 第二隊');
         }
 
         function drawGame(boxId, resultId) {
