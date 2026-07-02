@@ -18,6 +18,20 @@
             
             <div id="step-identity" class="space-y-4">
                 <h2 class="text-lg font-bold text-center border-b pb-2">Step 1: 請選擇你的動物身分</h2>
+                
+                <div class="flex justify-center items-center space-x-2 bg-indigo-50 p-2 rounded-lg mb-2">
+                    <label for="pair-count" class="text-sm font-bold text-indigo-800">人數設定：</label>
+                    <select id="pair-count" class="border border-indigo-200 rounded px-2 py-1 text-sm bg-white text-indigo-700 outline-none shadow-sm focus:border-indigo-500">
+                        <option value="2">2 對 (4人)</option>
+                        <option value="3">3 對 (6人)</option>
+                        <option value="4">4 對 (8人)</option>
+                        <option value="5">5 對 (10人)</option>
+                        <option value="6">6 對 (12人)</option>
+                        <option value="7">7 對 (14人)</option>
+                        <option value="8" selected>8 對 (16人)</option>
+                    </select>
+                </div>
+
                 <p class="text-xs text-amber-600 bg-amber-50 p-2 rounded text-center">💡 被選走的動物會自動反灰，每人限選一個身分</p>
                 <div id="identity-grid" class="grid grid-cols-2 gap-3 max-h-[350px] overflow-y-auto p-1">
                     </div>
@@ -30,8 +44,8 @@
                     
                     <div class="text-left text-xs bg-indigo-50 p-3 rounded-xl space-y-1 my-3 text-gray-600 border border-indigo-100">
                         <p class="font-bold text-indigo-800 mb-1">📊 評分標準說明：</p>
-                        <p>⭕ <strong>O</strong> ：印象很好❤️</p>
-                        <p>⚠️ <strong>△</strong> ：感覺不錯，還需要相處看看</p>
+                        <p>❤️❤️ <strong>❤️❤️</strong> ：印象很好❤️</p>
+                        <p>⭕ <strong>O</strong> ：感覺不錯，還需要相處看看</p>
                         <p>❌ <strong>X</strong> ：抱歉，沒有眼緣</p>
                     </div>
                 </div>
@@ -78,8 +92,8 @@
         <section id="admin-panel" class="mt-6 bg-gray-800 text-white rounded-xl p-4 space-y-4 hidden">
             <h3 class="text-md font-bold text-amber-400 border-b border-gray-700 pb-1">👑 主辦人隱密主控台</h3>
             <div class="text-xs space-y-1 text-gray-300">
-                <p>📊 目前連線人數：<span id="admin-count-join" class="text-white font-bold">0</span> / 16</p>
-                <p>📝 已完成投票數：<span id="admin-count-vote" class="text-white font-bold">0</span> / 16</p>
+                <p>📊 目前連線人數：<span id="admin-count-join" class="text-white font-bold">0</span> / <span id="admin-total-join">16</span></p>
+                <p>📝 已完成投票數：<span id="admin-count-vote" class="text-white font-bold">0</span> / <span id="admin-total-vote">16</span></p>
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <button id="btn-admin-calc" class="bg-emerald-600 hover:bg-emerald-700 font-bold py-2 px-3 rounded text-sm transition">
@@ -111,11 +125,7 @@
         const db = getDatabase(app);
 
         const ANIMALS = ['兔子', '獅子', '貓咪', '小狗', '企鵝', '大象', '狐狸', '熊熊'];
-        const ROLES = [];
-        ANIMALS.forEach(a => {
-            ROLES.push({ id: `${a}男`, name: `👦 ${a}男`, gender: 'M' });
-            ROLES.push({ id: `${a}女`, name: `👧 ${a}女`, gender: 'F' });
-        });
+        const ROLES = []; 
 
         let myId = null;
         let myRoleObj = null;
@@ -149,9 +159,27 @@
             const votes = data.votes || {};
             const systemState = data.state || 'voting';
             const finalMatches = data.matches || {};
+            const pairCount = data.pairCount || 8; // 預設 8 對
 
+            // 同步對數設定選單
+            const pairCountSelect = document.getElementById('pair-count');
+            if (pairCountSelect.value !== pairCount.toString()) {
+                pairCountSelect.value = pairCount;
+            }
+
+            // 動態產生對應數量的角色
+            ROLES.length = 0; 
+            ANIMALS.slice(0, pairCount).forEach(a => {
+                ROLES.push({ id: `${a}男`, name: `👦 ${a}男`, gender: 'M', animal: a });
+                ROLES.push({ id: `${a}女`, name: `👧 ${a}女`, gender: 'F', animal: a });
+            });
+
+            // 更新管理員看板人數上限
+            const totalPeople = pairCount * 2;
             document.getElementById('admin-count-join').innerText = Object.keys(onlineUsers).length;
+            document.getElementById('admin-total-join').innerText = totalPeople;
             document.getElementById('admin-count-vote').innerText = Object.keys(votes).length;
+            document.getElementById('admin-total-vote').innerText = totalPeople;
 
             if (systemState === 'finished') {
                 document.getElementById('public-reset-container').classList.add('hidden');
@@ -177,153 +205,13 @@
             }
         });
 
+        // 監聽對數設定改變 (同步到 Firebase)
+        document.getElementById('pair-count').addEventListener('change', async (e) => {
+            await update(ref(db, '/'), { pairCount: parseInt(e.target.value) });
+        });
+
         function renderIdentityGrid(onlineUsers) {
             const grid = document.getElementById('identity-grid');
             grid.innerHTML = '';
             ROLES.forEach(role => {
-                const isTaken = !!onlineUsers[role.id];
-                const btn = document.createElement('button');
-                btn.className = `p-3 rounded-xl border text-sm font-bold text-center transition ${isTaken ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300' : 'bg-white hover:bg-indigo-50 border-indigo-200 text-indigo-700 hover:border-indigo-400 shadow-sm'}`;
-                btn.innerText = role.name;
-                btn.disabled = isTaken;
-                btn.onclick = () => selectIdentity(role);
-                grid.appendChild(btn);
-            });
-        }
-
-        async function selectIdentity(role) {
-            myId = role.id;
-            myRoleObj = role;
-            document.getElementById('user-badge').innerText = `目前身分：${role.name}`;
-            await update(ref(db, `users/${myId}`), { joined: true });
-        }
-
-        document.getElementById('btn-back-to-step1').onclick = async () => {
-            if (!myId) return;
-            await set(ref(db, `users/${myId}`), null);
-            myId = null;
-            myRoleObj = null;
-        };
-
-        function renderVoteList() {
-            const list = document.getElementById('vote-list');
-            list.innerHTML = '';
-            const targetGender = myRoleObj.gender === 'M' ? 'F' : 'M';
-            const targets = ROLES.filter(r => r.gender === targetGender);
-
-            targets.forEach(target => {
-                myVotes[target.id] = myVotes[target.id] || 'X'; // 預設 X
-
-                const row = document.createElement('div');
-                row.className = 'flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl shadow-sm';
-                
-                const nameSpan = document.createElement('span');
-                nameSpan.className = 'font-bold text-gray-700';
-                nameSpan.innerText = target.name;
-                
-                const btnGroup = document.createElement('div');
-                btnGroup.className = 'flex space-x-1';
-
-                const options = [
-                    { val: 'O', label: '⭕' },
-                    { val: '△', label: '⚠️' },
-                    { val: 'X', label: '❌' }
-                ];
-
-                options.forEach(opt => {
-                    const btn = document.createElement('button');
-                    const isActive = myVotes[target.id] === opt.val;
-                    btn.className = `px-3 py-1 rounded text-sm transition ${isActive ? 'bg-indigo-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`;
-                    btn.innerText = opt.label;
-                    btn.onclick = () => {
-                        myVotes[target.id] = opt.val;
-                        renderVoteList(); // 重新渲染選取狀態
-                    };
-                    btnGroup.appendChild(btn);
-                });
-
-                row.appendChild(nameSpan);
-                row.appendChild(btnGroup);
-                list.appendChild(row);
-            });
-        }
-
-        document.getElementById('btn-submit-vote').onclick = async () => {
-            if(confirm('確定送出投票嗎？送出後無法修改！')) {
-                await set(ref(db, `votes/${myId}`), myVotes);
-            }
-        };
-
-        function showMyResult(matches) {
-            switchStep(stepResult);
-            const container = document.getElementById('match-container');
-            const list = document.getElementById('match-list');
-            const title = document.getElementById('result-title');
-            const icon = document.getElementById('result-status-icon');
-            const desc = document.getElementById('result-desc');
-
-            list.innerHTML = '';
-
-            if (matches && matches.length > 0) {
-                icon.innerText = "🎉";
-                title.innerText = "恭喜，雙向奔赴！";
-                title.className = "text-2xl font-black text-rose-600";
-                desc.innerText = "請憑此畫面尋找你的心動對象領取獎品！\n如果不好意思，也可以請主持人幫忙牽線喔！";
-                
-                matches.forEach(m => {
-                    const el = document.createElement('div');
-                    el.className = "bg-white text-rose-600 font-bold p-2 rounded shadow-sm border border-rose-100";
-                    el.innerText = `💞 ${m} 💞`;
-                    list.appendChild(el);
-                });
-                container.classList.remove('hidden');
-            } else {
-                icon.innerText = "🍃";
-                title.innerText = "感謝參與";
-                title.className = "text-2xl font-black text-gray-500";
-                desc.innerText = "雖然這次沒有配對成功，但相遇即是緣分。\n多聊聊天，也許會有不同的火花喔！";
-                container.classList.add('hidden');
-            }
-        }
-
-        // --- 管理員功能 ---
-        async function calculateResults() {
-            onValue(ref(db, 'votes'), async (snapshot) => {
-                const votes = snapshot.val() || {};
-                let matches = {};
-                
-                Object.keys(votes).forEach(userA => {
-                    matches[userA] = [];
-                    Object.keys(votes[userA]).forEach(userB => {
-                        if (votes[userA][userB] === 'O' && votes[userB] && votes[userB][userA] === 'O') {
-                            matches[userA].push(userB);
-                        }
-                    });
-                });
-
-                await update(ref(db, '/'), {
-                    state: 'finished',
-                    matches: matches
-                });
-                alert('計算完成，已發送結果給所有參與者！');
-            }, { onlyOnce: true });
-        }
-
-        async function resetSystem() {
-            if(confirm('確定要清除所有資料並重設系統嗎？')) {
-                await set(ref(db, '/'), { state: 'voting' });
-                myId = null;
-                myRoleObj = null;
-                myVotes = {};
-                alert('系統已重設！');
-                window.location.reload();
-            }
-        }
-
-        document.getElementById('btn-admin-calc').onclick = calculateResults;
-        document.getElementById('btn-admin-reset').onclick = resetSystem;
-        document.getElementById('btn-public-reset').onclick = resetSystem;
-
-    </script>
-</body>
-</html>
+                const
