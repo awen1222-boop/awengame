@@ -16,9 +16,11 @@
 
         <main id="main-card" class="bg-white rounded-2xl shadow-xl p-6 min-h-[400px] flex flex-col justify-between">
             
+            <!-- Step 1: 選身分 -->
             <div id="step-identity" class="space-y-4">
                 <h2 class="text-lg font-bold text-center border-b pb-2">Step 1: 請選擇你的動物身分</h2>
                 
+                <!-- 情侶對數設定 (連動 Firebase) -->
                 <div class="flex justify-center items-center space-x-2 bg-indigo-50 p-2 rounded-lg mb-2">
                     <label for="pair-count" class="text-sm font-bold text-indigo-800">人數設定：</label>
                     <select id="pair-count" class="border border-indigo-200 rounded px-2 py-1 text-sm bg-white text-indigo-700 outline-none shadow-sm focus:border-indigo-500">
@@ -33,10 +35,15 @@
                 </div>
 
                 <p class="text-xs text-amber-600 bg-amber-50 p-2 rounded text-center">💡 被選走的動物會自動反灰，每人限選一個身分</p>
+                
+                <!-- 身分按鈕區塊 -->
                 <div id="identity-grid" class="grid grid-cols-2 gap-3 max-h-[350px] overflow-y-auto p-1">
-                    </div>
+                    <!-- 預設載入中狀態 -->
+                    <div class="col-span-2 text-center text-gray-400 text-sm py-4">🔄 正在連線讀取名單...</div>
+                </div>
             </div>
 
+            <!-- Step 2: 投票 -->
             <div id="step-vote" class="space-y-4 hidden">
                 <div class="text-center">
                     <span id="user-badge" class="inline-block bg-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1 rounded-full"></span>
@@ -51,7 +58,8 @@
                 </div>
 
                 <div id="vote-list" class="space-y-3 max-h-[320px] overflow-y-auto p-1">
-                    </div>
+                    <!-- JS 會在這裡動態產生投票選項 -->
+                </div>
 
                 <div class="grid grid-cols-3 gap-2 mt-2">
                     <button id="btn-back-to-step1" class="col-span-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-xl transition shadow-sm border border-gray-300">
@@ -63,12 +71,14 @@
                 </div>
             </div>
 
+            <!-- Step 3: 等待中 -->
             <div id="step-waiting" class="text-center space-y-4 py-12 hidden">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
                 <h2 class="text-xl font-bold text-gray-700">投票已安全加密送出！</h2>
                 <p class="text-sm text-gray-500">請等待主辦人統計並揭曉配對結果...</p>
             </div>
 
+            <!-- Step 4: 結果 -->
             <div id="step-result" class="space-y-6 text-center py-6 hidden">
                 <div id="result-status-icon" class="text-6xl"></div>
                 <h2 id="result-title" class="text-2xl font-black"></h2>
@@ -76,7 +86,8 @@
                 <div id="match-container" class="bg-indigo-50/60 rounded-xl p-4 space-y-2 hidden">
                     <p class="text-sm font-bold text-indigo-800 border-b pb-1">❤ 恭喜！配對成功結果如下 ❤</p>
                     <div id="match-list" class="space-y-3 pt-1">
-                        </div>
+                        <!-- JS 動態產生配對結果 -->
+                    </div>
                 </div>
                 <p id="result-desc" class="text-sm text-gray-600 px-4 whitespace-pre-line"></p>
             </div>
@@ -89,6 +100,7 @@
             </button>
         </div>
 
+        <!-- 管理員面板 -->
         <section id="admin-panel" class="mt-6 bg-gray-800 text-white rounded-xl p-4 space-y-4 hidden">
             <h3 class="text-md font-bold text-amber-400 border-b border-gray-700 pb-1">👑 主辦人隱密主控台</h3>
             <div class="text-xs space-y-1 text-gray-300">
@@ -125,7 +137,7 @@
         const db = getDatabase(app);
 
         const ANIMALS = ['兔子', '獅子', '貓咪', '小狗', '企鵝', '大象', '狐狸', '熊熊'];
-        const ROLES = []; 
+        let ROLES = []; 
 
         let myId = null;
         let myRoleObj = null;
@@ -138,12 +150,21 @@
         const stepResult = document.getElementById('step-result');
         const adminPanel = document.getElementById('admin-panel');
 
+        // 生成角色名單函數
+        function generateRoles(count) {
+            ROLES = [];
+            ANIMALS.slice(0, count).forEach(a => {
+                ROLES.push({ id: `${a}男`, name: `👦 ${a}男`, gender: 'M', animal: a });
+                ROLES.push({ id: `${a}女`, name: `👧 ${a}女`, gender: 'F', animal: a });
+            });
+        }
+
         function switchStep(stepElement) {
             [stepIdentity, stepVote, stepWaiting, stepResult].forEach(el => el.classList.add('hidden'));
             stepElement.classList.remove('hidden');
         }
 
-        // 秘技：開主控台
+        // 秘技：開主控台 (連續點擊標題 5 次)
         document.getElementById('app-title').addEventListener('click', () => {
             clickTitleCount++;
             if (clickTitleCount >= 5) {
@@ -152,57 +173,64 @@
             }
         });
 
-        // 監聽 Firebase
+        // 監聽 Firebase (加入錯誤處理以確保穩定)
         onValue(ref(db, '/'), (snapshot) => {
-            const data = snapshot.val() || {};
-            const onlineUsers = data.users || {};
-            const votes = data.votes || {};
-            const systemState = data.state || 'voting';
-            const finalMatches = data.matches || {};
-            const pairCount = data.pairCount || 8; // 預設 8 對
+            try {
+                const data = snapshot.val() || {};
+                const onlineUsers = data.users || {};
+                const votes = data.votes || {};
+                const systemState = data.state || 'voting';
+                const finalMatches = data.matches || {};
+                
+                // 強制轉為數字，防止資料庫出現意外格式
+                const pairCount = parseInt(data.pairCount) || 8; 
 
-            // 同步對數設定選單
-            const pairCountSelect = document.getElementById('pair-count');
-            if (pairCountSelect.value !== pairCount.toString()) {
-                pairCountSelect.value = pairCount;
-            }
-
-            // 動態產生對應數量的角色
-            ROLES.length = 0; 
-            ANIMALS.slice(0, pairCount).forEach(a => {
-                ROLES.push({ id: `${a}男`, name: `👦 ${a}男`, gender: 'M', animal: a });
-                ROLES.push({ id: `${a}女`, name: `👧 ${a}女`, gender: 'F', animal: a });
-            });
-
-            // 更新管理員看板人數上限
-            const totalPeople = pairCount * 2;
-            document.getElementById('admin-count-join').innerText = Object.keys(onlineUsers).length;
-            document.getElementById('admin-total-join').innerText = totalPeople;
-            document.getElementById('admin-count-vote').innerText = Object.keys(votes).length;
-            document.getElementById('admin-total-vote').innerText = totalPeople;
-
-            if (systemState === 'finished') {
-                document.getElementById('public-reset-container').classList.add('hidden');
-                if (myId) {
-                    showMyResult(finalMatches[myId] || []);
-                } else {
-                    document.getElementById('result-title').innerText = "開獎計算完成";
-                    document.getElementById('result-status-icon').innerText = "🏁";
-                    document.getElementById('result-desc').innerText = "結果已完成交叉配對。";
-                    switchStep(stepResult);
+                // 同步對數設定選單
+                const pairCountSelect = document.getElementById('pair-count');
+                if (pairCountSelect.value !== pairCount.toString()) {
+                    pairCountSelect.value = pairCount;
                 }
-            } else {
-                document.getElementById('public-reset-container').classList.remove('hidden');
-                if (!myId) {
-                    renderIdentityGrid(onlineUsers);
-                    switchStep(stepIdentity);
-                } else if (votes[myId]) {
-                    switchStep(stepWaiting);
+
+                // 產生對應數量的角色陣列
+                generateRoles(pairCount);
+
+                // 更新管理員看板人數上限
+                const totalPeople = pairCount * 2;
+                document.getElementById('admin-count-join').innerText = Object.keys(onlineUsers).length;
+                document.getElementById('admin-total-join').innerText = totalPeople;
+                document.getElementById('admin-count-vote').innerText = Object.keys(votes).length;
+                document.getElementById('admin-total-vote').innerText = totalPeople;
+
+                if (systemState === 'finished') {
+                    document.getElementById('public-reset-container').classList.add('hidden');
+                    if (myId) {
+                        showMyResult(finalMatches[myId] || []);
+                    } else {
+                        document.getElementById('result-title').innerText = "開獎計算完成";
+                        document.getElementById('result-status-icon').innerText = "🏁";
+                        document.getElementById('result-desc').innerText = "結果已完成交叉配對。";
+                        switchStep(stepResult);
+                    }
                 } else {
-                    renderVoteList();
-                    switchStep(stepVote);
+                    document.getElementById('public-reset-container').classList.remove('hidden');
+                    if (!myId) {
+                        renderIdentityGrid(onlineUsers);
+                        switchStep(stepIdentity);
+                    } else if (votes[myId]) {
+                        switchStep(stepWaiting);
+                    } else {
+                        renderVoteList();
+                        switchStep(stepVote);
+                    }
                 }
+            } catch (err) {
+                console.error("處理資料時發生錯誤: ", err);
             }
+        }, (error) => {
+            // 如果連線失敗或權限被擋，顯示錯誤訊息
+            console.error("Firebase 連線失敗: ", error);
+            const grid = document.getElementById('identity-grid');
+            grid.innerHTML = '<div class="col-span-2 text-center text-red-500 font-bold p-4">資料庫連線異常，請重新整理網頁。</div>';
         });
 
         // 監聽對數設定改變 (同步到 Firebase)
@@ -210,8 +238,163 @@
             await update(ref(db, '/'), { pairCount: parseInt(e.target.value) });
         });
 
+        // 渲染第一步的身分按鈕
         function renderIdentityGrid(onlineUsers) {
             const grid = document.getElementById('identity-grid');
             grid.innerHTML = '';
+            
             ROLES.forEach(role => {
-                const
+                const isTaken = !!onlineUsers[role.id];
+                const btn = document.createElement('button');
+                btn.className = `p-3 rounded-xl border text-sm font-bold text-center transition ${isTaken ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300' : 'bg-white hover:bg-indigo-50 border-indigo-200 text-indigo-700 hover:border-indigo-400 shadow-sm'}`;
+                btn.innerText = role.name;
+                btn.disabled = isTaken;
+                btn.onclick = () => selectIdentity(role);
+                grid.appendChild(btn);
+            });
+        }
+
+        async function selectIdentity(role) {
+            myId = role.id;
+            myRoleObj = role;
+            document.getElementById('user-badge').innerText = `目前身分：${role.name}`;
+            await update(ref(db, `users/${myId}`), { joined: true });
+        }
+
+        // 返回按鈕邏輯
+        document.getElementById('btn-back-to-step1').onclick = async () => {
+            if (!myId) return;
+            const tempId = myId;
+            myId = null; 
+            myRoleObj = null;
+            myVotes = {};
+            await set(ref(db, `users/${tempId}`), null);
+        };
+
+        // 渲染第二步的投票名單
+        function renderVoteList() {
+            const list = document.getElementById('vote-list');
+            list.innerHTML = '';
+            const targetGender = myRoleObj.gender === 'M' ? 'F' : 'M';
+            
+            // 過濾掉與自己相同動物的伴侶
+            const targets = ROLES.filter(r => r.gender === targetGender && r.animal !== myRoleObj.animal);
+
+            targets.forEach(target => {
+                myVotes[target.id] = myVotes[target.id] || 'X'; // 預設為 X
+
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between p-3 bg-white border border-gray-200 rounded-xl shadow-sm';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'font-bold text-gray-700';
+                nameSpan.innerText = target.name;
+                
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'flex space-x-1';
+
+                const options = [
+                    { val: '❤️❤️', label: '❤️❤️' },
+                    { val: 'O', label: '⭕' },
+                    { val: 'X', label: '❌' }
+                ];
+
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    const isActive = myVotes[target.id] === opt.val;
+                    btn.className = `px-3 py-1 rounded text-sm transition ${isActive ? 'bg-indigo-600 text-white font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`;
+                    btn.innerText = opt.label;
+                    btn.onclick = () => {
+                        myVotes[target.id] = opt.val;
+                        renderVoteList(); // 重新渲染按鈕外觀
+                    };
+                    btnGroup.appendChild(btn);
+                });
+
+                row.appendChild(nameSpan);
+                row.appendChild(btnGroup);
+                list.appendChild(row);
+            });
+        }
+
+        document.getElementById('btn-submit-vote').onclick = async () => {
+            if(confirm('確定送出投票嗎？送出後無法修改！')) {
+                await set(ref(db, `votes/${myId}`), myVotes);
+            }
+        };
+
+        function showMyResult(matches) {
+            switchStep(stepResult);
+            const container = document.getElementById('match-container');
+            const list = document.getElementById('match-list');
+            const title = document.getElementById('result-title');
+            const icon = document.getElementById('result-status-icon');
+            const desc = document.getElementById('result-desc');
+
+            list.innerHTML = '';
+
+            if (matches && matches.length > 0) {
+                icon.innerText = "🎉";
+                title.innerText = "恭喜，雙向奔赴！";
+                title.className = "text-2xl font-black text-rose-600";
+                desc.innerText = "請憑此畫面尋找你的心動對象領取獎品！\n如果不好意思，也可以請主持人幫忙牽線喔！";
+                
+                matches.forEach(m => {
+                    const el = document.createElement('div');
+                    el.className = "bg-white text-rose-600 font-bold p-2 rounded shadow-sm border border-rose-100";
+                    el.innerText = `💞 ${m} 💞`;
+                    list.appendChild(el);
+                });
+                container.classList.remove('hidden');
+            } else {
+                icon.innerText = "🍃";
+                title.innerText = "感謝參與";
+                title.className = "text-2xl font-black text-gray-500";
+                desc.innerText = "雖然這次沒有配對成功，但相遇即是緣分。\n多聊聊天，也許會有不同的火花喔！";
+                container.classList.add('hidden');
+            }
+        }
+
+        // --- 管理員功能 ---
+        async function calculateResults() {
+            onValue(ref(db, 'votes'), async (snapshot) => {
+                const votes = snapshot.val() || {};
+                let matches = {};
+                
+                Object.keys(votes).forEach(userA => {
+                    matches[userA] = [];
+                    Object.keys(votes[userA]).forEach(userB => {
+                        // 判斷雙方都投 '❤️❤️' 才算配對成功
+                        if (votes[userA][userB] === '❤️❤️' && votes[userB] && votes[userB][userA] === '❤️❤️') {
+                            matches[userA].push(userB);
+                        }
+                    });
+                });
+
+                await update(ref(db, '/'), {
+                    state: 'finished',
+                    matches: matches
+                });
+                alert('計算完成，已發送結果給所有參與者！');
+            }, { onlyOnce: true });
+        }
+
+        async function resetSystem() {
+            if(confirm('確定要清除所有資料並重設系統嗎？')) {
+                const currentPairCount = parseInt(document.getElementById('pair-count').value) || 8;
+                await set(ref(db, '/'), { state: 'voting', pairCount: currentPairCount });
+                myId = null;
+                myRoleObj = null;
+                myVotes = {};
+                alert('系統已重設！');
+                window.location.reload();
+            }
+        }
+
+        document.getElementById('btn-admin-calc').onclick = calculateResults;
+        document.getElementById('btn-admin-reset').onclick = resetSystem;
+        document.getElementById('btn-public-reset').onclick = resetSystem;
+
+    </script>
+</body>
+</html>
