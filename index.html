@@ -18,7 +18,7 @@
             <p class="text-sm text-gray-500 mt-2">絕對隱私 · 即時配對系統</p>
         </header>
 
-        <main id="main-card" class="bg-white rounded-2xl shadow-xl p-6 min-h-[400px] flex flex-col justify-between">
+        <main id="main-card" class="bg-white rounded-2xl shadow-xl p-6 min-h-[400px] flex flex-col justify-between mb-4">
             
             <div id="step-identity" class="space-y-4">
                 <h2 class="text-lg font-bold text-center border-b pb-2">Step 1: 請輸入你的姓名</h2>
@@ -93,12 +93,12 @@
 
         </main>
 
-        <div id="public-reset-container" class="mt-4 flex flex-col space-y-2">
+        <div id="public-reset-container" class="flex flex-col space-y-2">
             <button id="btn-force-reload" class="w-full bg-amber-100 hover:bg-amber-200 text-amber-700 font-bold py-2.5 px-4 rounded-xl text-sm transition shadow-sm border border-amber-300">
                 🚀 強制更新網頁 / 清除本機紀錄
             </button>
             <button id="btn-public-reset" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-600 font-bold py-2.5 px-4 rounded-xl text-sm transition shadow-sm border border-gray-300">
-                🔄 測試快捷：全域重設系統 (Reset)
+                🔄 全域重設系統 (刪除所有紀錄)
             </button>
         </div>
 
@@ -113,7 +113,7 @@
                     🚀 計算公佈結果
                 </button>
                 <button id="btn-admin-reset" class="bg-rose-600 hover:bg-rose-700 font-bold py-2 px-3 rounded text-sm transition">
-                    🔄 全域重設 (Reset)
+                    🔄 全域重設
                 </button>
             </div>
         </section>
@@ -140,8 +140,18 @@
         const PAIR_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
         let ROLES = []; 
 
-        let myId = localStorage.getItem('game_myId') || null;
-        let myRoleObj = JSON.parse(localStorage.getItem('game_myRole') || 'null');
+        // 【防呆設計】防止 localStorage 儲存了損壞的格式導致整個網頁掛掉
+        let myId = null;
+        let myRoleObj = null;
+        try {
+            myId = localStorage.getItem('game_myId');
+            myRoleObj = JSON.parse(localStorage.getItem('game_myRole') || 'null');
+        } catch (e) {
+            console.warn('本地資料解析失敗，已自動清除舊暫存');
+            localStorage.removeItem('game_myId');
+            localStorage.removeItem('game_myRole');
+        }
+
         let myVotes = {};
         let clickTitleCount = 0;
         let isReadyToVote = false; 
@@ -166,7 +176,7 @@
             }
         });
 
-        // 監聽 Firebase
+        // 監聽 Firebase (加入錯誤捕捉，確保斷線時有提示)
         onValue(ref(db, '/'), (snapshot) => {
             try {
                 const data = snapshot.val() || {};
@@ -200,7 +210,6 @@
                 document.getElementById('admin-total-vote').innerText = totalPeople;
 
                 if (systemState === 'finished') {
-                    document.getElementById('public-reset-container').classList.add('hidden');
                     if (myId) {
                         showMyResult(finalMatches[myId] || []);
                     } else {
@@ -210,7 +219,6 @@
                         switchStep(stepResult);
                     }
                 } else {
-                    document.getElementById('public-reset-container').classList.remove('hidden');
                     if (!isReadyToVote) {
                         renderIdentityGrid(onlineUsers, pairCount);
                         switchStep(stepIdentity);
@@ -224,6 +232,8 @@
             } catch (err) {
                 console.error("處理資料時發生錯誤: ", err);
             }
+        }, (error) => {
+            document.getElementById('identity-grid').innerHTML = `<div class="text-center text-red-500 font-bold py-4">資料庫連線失敗，請檢查網路或系統權限。<br>(${error.message})</div>`;
         });
 
         document.getElementById('pair-count').addEventListener('change', async (e) => {
@@ -408,4 +418,96 @@
         };
 
         function showMyResult(matches) {
-            switch
+            switchStep(stepResult);
+            const container = document.getElementById('match-container');
+            const list = document.getElementById('match-list');
+            const title = document.getElementById('result-title');
+            const icon = document.getElementById('result-status-icon');
+            const desc = document.getElementById('result-desc');
+
+            list.innerHTML = '';
+
+            if (matches && matches.length > 0) {
+                icon.innerText = "🎉";
+                title.innerText = "恭喜，雙向奔赴！";
+                title.className = "text-2xl font-black text-rose-600";
+                desc.innerText = "請憑此畫面尋找你的心動對象！";
+                
+                matches.forEach(mName => {
+                    const el = document.createElement('div');
+                    el.className = "bg-white text-rose-600 font-bold p-2 rounded shadow-sm border border-rose-100";
+                    el.innerText = `💞 ${mName} 💞`;
+                    list.appendChild(el);
+                });
+                container.classList.remove('hidden');
+            } else {
+                icon.innerText = "🍃";
+                title.innerText = "感謝參與";
+                title.className = "text-2xl font-black text-gray-500";
+                desc.innerText = "雖然這次沒有配對成功，但相遇即是緣分。\n多聊聊天，也許會有不同的火花喔！";
+                container.classList.add('hidden');
+            }
+        }
+
+        // ==========================
+        // 管理員與重設功能
+        // ==========================
+        async function calculateResults() {
+            try {
+                const snapshot = await get(ref(db, '/'));
+                const data = snapshot.val() || {};
+                const votes = data.votes || {};
+                const users = data.users || {};
+                let matches = {};
+                
+                Object.keys(users).forEach(u => matches[u] = []);
+
+                Object.keys(votes).forEach(userA => {
+                    Object.keys(votes[userA]).forEach(userB => {
+                        if (votes[userA][userB] === '❤️❤️' && votes[userB] && votes[userB][userA] === '❤️❤️') {
+                            const targetName = users[userB]?.name || userB;
+                            matches[userA].push(targetName);
+                        }
+                    });
+                });
+
+                await update(ref(db, '/'), {
+                    state: 'finished',
+                    matches: matches
+                });
+                alert('計算完成，已發送結果給所有參與者！');
+            } catch (error) {
+                console.error("結算失敗:", error);
+                alert("結算失敗，請檢查網路狀態或稍後再試。");
+            }
+        }
+
+        async function resetSystem() {
+            if(confirm('確定要清除所有資料並重設系統嗎？')) {
+                const currentPairCount = parseInt(document.getElementById('pair-count').value) || 8;
+                await set(ref(db, '/'), { state: 'voting', pairCount: currentPairCount });
+                myId = null;
+                myRoleObj = null;
+                localStorage.removeItem('game_myId');
+                localStorage.removeItem('game_myRole');
+                myVotes = {};
+                isReadyToVote = false;
+                alert('系統已重設！');
+                
+                // 強制加上時間戳記重新導向
+                window.location.href = window.location.pathname + '?v=' + new Date().getTime();
+            }
+        }
+
+        document.getElementById('btn-force-reload').onclick = () => {
+            localStorage.clear();
+            window.location.href = window.location.pathname + '?v=' + new Date().getTime();
+        };
+
+        document.getElementById('btn-admin-calc').onclick = calculateResults;
+        document.getElementById('btn-admin-reset').onclick = resetSystem;
+        document.getElementById('btn-public-reset').onclick = resetSystem;
+
+    </script>
+</body>
+</html>
