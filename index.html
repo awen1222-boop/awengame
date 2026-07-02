@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <title>開獎系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -89,7 +93,10 @@
 
         </main>
 
-        <div id="public-reset-container" class="mt-4 text-center">
+        <div id="public-reset-container" class="mt-4 flex flex-col space-y-2">
+            <button id="btn-force-reload" class="w-full bg-amber-100 hover:bg-amber-200 text-amber-700 font-bold py-2.5 px-4 rounded-xl text-sm transition shadow-sm border border-amber-300">
+                🚀 強制更新網頁 / 清除本機紀錄
+            </button>
             <button id="btn-public-reset" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-600 font-bold py-2.5 px-4 rounded-xl text-sm transition shadow-sm border border-gray-300">
                 🔄 測試快捷：全域重設系統 (Reset)
             </button>
@@ -113,7 +120,6 @@
     </div>
 
     <script type="module">
-        // 注意：這裡多引入了 get 方法，強化抓資料的穩定性
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -134,7 +140,6 @@
         const PAIR_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
         let ROLES = []; 
 
-        // 加上 localStorage 記憶功能，防止重整網頁身分遺失
         let myId = localStorage.getItem('game_myId') || null;
         let myRoleObj = JSON.parse(localStorage.getItem('game_myRole') || 'null');
         let myVotes = {};
@@ -172,13 +177,11 @@
                 
                 const pairCount = parseInt(data.pairCount) || 8; 
 
-                // 同步下拉選單
                 const pairCountSelect = document.getElementById('pair-count');
                 if (pairCountSelect.value !== pairCount.toString()) {
                     pairCountSelect.value = pairCount;
                 }
 
-                // 若系統重設或已被移除，自動清除本地暫存
                 if (myId && !onlineUsers[myId]) {
                     myId = null;
                     myRoleObj = null;
@@ -331,7 +334,6 @@
             myId = slotId;
             myRoleObj = { id: slotId, pairId: pairId, gender: gender, name: name };
             
-            // 寫入本地暫存防呆
             localStorage.setItem('game_myId', myId);
             localStorage.setItem('game_myRole', JSON.stringify(myRoleObj));
 
@@ -406,91 +408,4 @@
         };
 
         function showMyResult(matches) {
-            switchStep(stepResult);
-            const container = document.getElementById('match-container');
-            const list = document.getElementById('match-list');
-            const title = document.getElementById('result-title');
-            const icon = document.getElementById('result-status-icon');
-            const desc = document.getElementById('result-desc');
-
-            list.innerHTML = '';
-
-            if (matches && matches.length > 0) {
-                icon.innerText = "🎉";
-                title.innerText = "恭喜，雙向奔赴！";
-                title.className = "text-2xl font-black text-rose-600";
-                desc.innerText = "請憑此畫面尋找你的心動對象！";
-                
-                matches.forEach(mName => {
-                    const el = document.createElement('div');
-                    el.className = "bg-white text-rose-600 font-bold p-2 rounded shadow-sm border border-rose-100";
-                    el.innerText = `💞 ${mName} 💞`;
-                    list.appendChild(el);
-                });
-                container.classList.remove('hidden');
-            } else {
-                icon.innerText = "🍃";
-                title.innerText = "感謝參與";
-                title.className = "text-2xl font-black text-gray-500";
-                desc.innerText = "雖然這次沒有配對成功，但相遇即是緣分。\n多聊聊天，也許會有不同的火花喔！";
-                container.classList.add('hidden');
-            }
-        }
-
-        // ==========================
-        // 管理員功能：強制同步獲取確保無空值
-        // ==========================
-        async function calculateResults() {
-            try {
-                // 改用 get() 確保抓到最新的完整資料，避免 onValue 快取干擾
-                const snapshot = await get(ref(db, '/'));
-                const data = snapshot.val() || {};
-                const votes = data.votes || {};
-                const users = data.users || {};
-                let matches = {};
-                
-                // 初始化名單，確保沒配對到的人也有空陣列
-                Object.keys(users).forEach(u => matches[u] = []);
-
-                Object.keys(votes).forEach(userA => {
-                    Object.keys(votes[userA]).forEach(userB => {
-                        if (votes[userA][userB] === '❤️❤️' && votes[userB] && votes[userB][userA] === '❤️❤️') {
-                            const targetName = users[userB]?.name || userB;
-                            matches[userA].push(targetName);
-                        }
-                    });
-                });
-
-                await update(ref(db, '/'), {
-                    state: 'finished',
-                    matches: matches
-                });
-                alert('計算完成，已發送結果給所有參與者！');
-            } catch (error) {
-                console.error("結算失敗:", error);
-                alert("結算失敗，請檢查網路狀態或稍後再試。");
-            }
-        }
-
-        async function resetSystem() {
-            if(confirm('確定要清除所有資料並重設系統嗎？')) {
-                const currentPairCount = parseInt(document.getElementById('pair-count').value) || 8;
-                await set(ref(db, '/'), { state: 'voting', pairCount: currentPairCount });
-                myId = null;
-                myRoleObj = null;
-                localStorage.removeItem('game_myId');
-                localStorage.removeItem('game_myRole');
-                myVotes = {};
-                isReadyToVote = false;
-                alert('系統已重設！');
-                window.location.reload();
-            }
-        }
-
-        document.getElementById('btn-admin-calc').onclick = calculateResults;
-        document.getElementById('btn-admin-reset').onclick = resetSystem;
-        document.getElementById('btn-public-reset').onclick = resetSystem;
-
-    </script>
-</body>
-</html>
+            switch
