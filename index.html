@@ -72,7 +72,7 @@
             <div id="step-waiting" class="text-center space-y-4 py-12 hidden">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
                 <h2 class="text-xl font-bold text-gray-700">投票已安全加密送出！</h2>
-                <p class="text-sm text-gray-500">請等待主辦人統計並揭曉配對結果...</p>
+                <p class="text-sm text-gray-500">請等待統計並揭曉配對結果...</p>
             </div>
 
             <div id="step-result" class="space-y-6 text-center py-6 hidden">
@@ -113,8 +113,9 @@
     </div>
 
     <script type="module">
+        // 注意：這裡多引入了 get 方法，強化抓資料的穩定性
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAicnJwTpTewbmyxQBcCb-Cu-0Hcupry88",
@@ -133,11 +134,12 @@
         const PAIR_LABELS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
         let ROLES = []; 
 
-        let myId = null;
-        let myRoleObj = null;
+        // 加上 localStorage 記憶功能，防止重整網頁身分遺失
+        let myId = localStorage.getItem('game_myId') || null;
+        let myRoleObj = JSON.parse(localStorage.getItem('game_myRole') || 'null');
         let myVotes = {};
         let clickTitleCount = 0;
-        let isReadyToVote = false; // 控制是否進入第二步
+        let isReadyToVote = false; 
 
         const stepIdentity = document.getElementById('step-identity');
         const stepVote = document.getElementById('step-vote');
@@ -176,10 +178,18 @@
                     pairCountSelect.value = pairCount;
                 }
 
-                // 根據已上線名單更新 ROLES，以供第二階段投票使用
+                // 若系統重設或已被移除，自動清除本地暫存
+                if (myId && !onlineUsers[myId]) {
+                    myId = null;
+                    myRoleObj = null;
+                    localStorage.removeItem('game_myId');
+                    localStorage.removeItem('game_myRole');
+                    myVotes = {};
+                    isReadyToVote = false;
+                }
+
                 ROLES = Object.values(onlineUsers);
 
-                // 更新管理員看板人數
                 const totalPeople = pairCount * 2;
                 document.getElementById('admin-count-join').innerText = Object.keys(onlineUsers).length;
                 document.getElementById('admin-total-join').innerText = totalPeople;
@@ -213,12 +223,10 @@
             }
         });
 
-        // 對數改變
         document.getElementById('pair-count').addEventListener('change', async (e) => {
             await update(ref(db, '/'), { pairCount: parseInt(e.target.value) });
         });
 
-        // 點擊配對按鈕進入第二步
         document.getElementById('btn-proceed-pairing').onclick = () => {
             isReadyToVote = true;
             renderVoteList();
@@ -232,7 +240,6 @@
             const grid = document.getElementById('identity-grid');
             grid.innerHTML = '';
             
-            // 加入頂部標題區分男女
             const header = document.createElement('div');
             header.className = "flex font-bold text-gray-600 mb-1 text-center text-sm items-center pb-2 border-b border-gray-200";
             header.innerHTML = `
@@ -246,7 +253,6 @@
 
             for (let i = 0; i < pairCount; i++) {
                 const pairId = PAIR_LABELS[i];
-                
                 const row = document.createElement('div');
                 row.className = "flex items-center space-x-2 bg-white p-2 rounded-xl shadow-sm border border-gray-100";
                 
@@ -255,7 +261,6 @@
                 label.innerText = pairId;
                 row.appendChild(label);
 
-                // 生成男生(左)、女生(右)輸入框
                 row.appendChild(createSlot(pairId, 'M', onlineUsers[`${pairId}-M`]));
                 row.appendChild(createSlot(pairId, 'F', onlineUsers[`${pairId}-F`]));
                 
@@ -265,7 +270,6 @@
                 if (onlineUsers[`${pairId}-F`]) filledCount++;
             }
 
-            // 判斷按鈕是否可以點擊
             const totalSlots = pairCount * 2;
             const pairBtn = document.getElementById('btn-proceed-pairing');
             
@@ -294,19 +298,16 @@
             btn.className = "bg-white border-2 border-green-500 text-green-500 hover:bg-green-500 hover:text-white px-2 rounded-lg font-bold transition flex items-center justify-center";
             
             if (userData) {
-                // 已被佔用
                 input.value = userData.name;
                 input.disabled = true;
                 input.className = "w-full border-2 border-transparent rounded-lg px-2 py-1.5 text-sm bg-gray-200 text-gray-500 cursor-not-allowed font-bold";
                 btn.disabled = true;
                 btn.className = "bg-gray-300 text-white px-2 rounded-lg font-bold cursor-not-allowed";
                 
-                // 如果是自己佔用的，稍微高亮顯示
                 if (myId === slotId) {
                     input.classList.add('bg-indigo-100', 'text-indigo-800');
                 }
             } else {
-                // 還未佔用，但如果我已經選過其他位置，就把按鈕鎖起來
                 if (myId) {
                     input.disabled = true;
                     btn.disabled = true;
@@ -329,6 +330,11 @@
             }
             myId = slotId;
             myRoleObj = { id: slotId, pairId: pairId, gender: gender, name: name };
+            
+            // 寫入本地暫存防呆
+            localStorage.setItem('game_myId', myId);
+            localStorage.setItem('game_myRole', JSON.stringify(myRoleObj));
+
             document.getElementById('user-badge').innerText = `目前身分：${name} (${pairId}${gender === 'M' ? '男' : '女'})`;
             await update(ref(db, `users/${slotId}`), { joined: true, name: name, pairId: pairId, gender: gender, id: slotId });
         }
@@ -341,9 +347,10 @@
             const tempId = myId;
             myId = null; 
             myRoleObj = null;
+            localStorage.removeItem('game_myId');
+            localStorage.removeItem('game_myRole');
             myVotes = {};
             isReadyToVote = false;
-            // 回上一頁時，清除原本的名字佔位及可能有的投票紀錄
             await set(ref(db, `users/${tempId}`), null);
             await set(ref(db, `votes/${tempId}`), null);
         };
@@ -353,7 +360,6 @@
             list.innerHTML = '';
             const targetGender = myRoleObj.gender === 'M' ? 'F' : 'M';
             
-            // 過濾掉同性別、以及跟自己同組的伴侶
             const targets = ROLES.filter(r => r.gender === targetGender && r.pairId !== myRoleObj.pairId);
 
             targets.forEach(target => {
@@ -432,20 +438,23 @@
         }
 
         // ==========================
-        // 管理員功能
+        // 管理員功能：強制同步獲取確保無空值
         // ==========================
         async function calculateResults() {
-            onValue(ref(db, '/'), async (snapshot) => {
+            try {
+                // 改用 get() 確保抓到最新的完整資料，避免 onValue 快取干擾
+                const snapshot = await get(ref(db, '/'));
                 const data = snapshot.val() || {};
                 const votes = data.votes || {};
                 const users = data.users || {};
                 let matches = {};
                 
+                // 初始化名單，確保沒配對到的人也有空陣列
+                Object.keys(users).forEach(u => matches[u] = []);
+
                 Object.keys(votes).forEach(userA => {
-                    matches[userA] = [];
                     Object.keys(votes[userA]).forEach(userB => {
                         if (votes[userA][userB] === '❤️❤️' && votes[userB] && votes[userB][userA] === '❤️❤️') {
-                            // 儲存對方的名字顯示在結果畫面
                             const targetName = users[userB]?.name || userB;
                             matches[userA].push(targetName);
                         }
@@ -457,7 +466,10 @@
                     matches: matches
                 });
                 alert('計算完成，已發送結果給所有參與者！');
-            }, { onlyOnce: true });
+            } catch (error) {
+                console.error("結算失敗:", error);
+                alert("結算失敗，請檢查網路狀態或稍後再試。");
+            }
         }
 
         async function resetSystem() {
@@ -466,6 +478,8 @@
                 await set(ref(db, '/'), { state: 'voting', pairCount: currentPairCount });
                 myId = null;
                 myRoleObj = null;
+                localStorage.removeItem('game_myId');
+                localStorage.removeItem('game_myRole');
                 myVotes = {};
                 isReadyToVote = false;
                 alert('系統已重設！');
