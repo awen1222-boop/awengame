@@ -39,9 +39,14 @@
                 <div id="vote-list" class="space-y-3 max-h-[320px] overflow-y-auto p-1">
                     </div>
 
-                <button id="btn-submit-vote" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow-lg mt-2">
-                    🔒 安全送出投票 (不可修改)
-                </button>
+                <div class="grid grid-cols-3 gap-2 mt-2">
+                    <button id="btn-back-to-step1" class="col-span-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-xl transition shadow-sm border border-gray-300">
+                        ⬅ 返回
+                    </button>
+                    <button id="btn-submit-vote" class="col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow-lg">
+                        🔒 送出投票 (不可修改)
+                    </button>
+                </div>
             </div>
 
             <div id="step-waiting" class="text-center space-y-4 py-12 hidden">
@@ -63,6 +68,12 @@
             </div>
 
         </main>
+
+        <div id="public-reset-container" class="mt-4 text-center">
+            <button id="btn-public-reset" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-600 font-bold py-2.5 px-4 rounded-xl text-sm transition shadow-sm border border-gray-300">
+                🔄 測試快捷：全域重設系統 (Reset)
+            </button>
+        </div>
 
         <section id="admin-panel" class="mt-6 bg-gray-800 text-white rounded-xl p-4 space-y-4 hidden">
             <h3 class="text-md font-bold text-amber-400 border-b border-gray-700 pb-1">👑 主辦人隱密主控台</h3>
@@ -120,6 +131,7 @@
         const stepWaiting = document.getElementById('step-waiting');
         const stepResult = document.getElementById('step-result');
         const adminPanel = document.getElementById('admin-panel');
+        const publicResetContainer = document.getElementById('public-reset-container');
 
         // 密技：點擊標題 5 次切換管理員面板
         document.getElementById('app-title').addEventListener('click', () => {
@@ -144,19 +156,10 @@
             document.getElementById('admin-count-join').innerText = joinedCount;
             document.getElementById('admin-count-vote').innerText = votedCount;
 
-            // 處理「重設(Reset)」與動態狀態更新
-            if (systemState === 'voting' && !myId) {
-                switchStep(stepIdentity);
-                renderIdentityGrid(onlineUsers);
-            } else if (systemState === 'voting' && myId) {
-                renderIdentityGrid(onlineUsers);
-                if (!votes[myId] && stepVote.classList.contains('hidden')) {
-                    setupVoteScreen();
-                }
-            }
-
-            // 處理「公佈結果」邏輯
+            // 處理狀態切換與介面顯示
             if (systemState === 'finished') {
+                // 已開獎：隱藏重設快捷鍵
+                publicResetContainer.classList.add('hidden');
                 if (myId) {
                     showMyResult(finalMatches[myId] || []);
                 } else {
@@ -165,51 +168,4 @@
                     document.getElementById('result-desc').innerText = "結果已完成交叉配對，並精準派發到各成員手機上。";
                     switchStep(stepResult);
                 }
-            }
-        });
-
-        // 渲染步驟一：身分選單
-        function renderIdentityGrid(onlineUsers) {
-            const grid = document.getElementById('identity-grid');
-            grid.innerHTML = '';
-            ROLES.forEach(role => {
-                const isTaken = !!onlineUsers[role.id];
-                const btn = document.createElement('button');
-                btn.className = `p-3 rounded-xl font-bold text-sm transition text-center border ${
-                    isTaken 
-                    ? 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed' 
-                    : 'bg-white hover:bg-indigo-50 text-gray-700 border-gray-300 shadow-sm active:scale-95'
-                }`;
-                btn.innerText = role.name;
-                btn.disabled = isTaken;
-                if (!isTaken) {
-                    btn.addEventListener('click', () => selectIdentity(role));
-                }
-                grid.appendChild(btn);
-            });
-        }
-
-        function selectIdentity(role) {
-            myId = role.id;
-            myRoleObj = role;
-            set(ref(db, `users/${myId}`), true).then(() => {
-                setupVoteScreen();
-            }).catch(() => {
-                alert('該角色剛好被選走了，請選擇其他動物！');
-                myId = null;
-                myRoleObj = null;
-            });
-        }
-
-        // 渲染步驟二：投票選單 (排除相同動物且改為 O, △, X 單選鈕)
-        function setupVoteScreen() {
-            document.getElementById('user-badge').innerText = `目前身分：${myRoleObj.name}`;
-            const voteList = document.getElementById('vote-list');
-            voteList.innerHTML = '';
-
-            // 規則 1：過濾掉同性別，且「不可出現同種動物的異性成員」
-            const opponents = ROLES.filter(r => r.gender !== myRoleObj.gender && r.animal !== myRoleObj.animal);
-            
-            opponents.forEach(opp => {
-                const item = document.createElement('div');
-                item.className = "p-3 bg-gray-50 rounded
+            } else {
