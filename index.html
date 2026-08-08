@@ -65,13 +65,6 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-        .vip-section {
-            margin-top: 15px;
-            padding: 15px;
-            background-color: #fcf3cf;
-            border-radius: 5px;
-            border-left: 5px solid #f1c40f;
-        }
         button {
             background-color: #27ae60;
             color: white;
@@ -140,6 +133,7 @@
                 <input type="text" value="史迪">
                 <input type="text" value="Rich">
                 <input type="text" value="Aden">
+                <input type="text" placeholder="臨時加入(男)...">
             </div>
             <div class="name-list" id="female-inputs">
                 <h3>女生名單</h3>
@@ -152,12 +146,8 @@
                 <input type="text" value="奇奇">
                 <input type="text" value="Mia">
                 <input type="text" value="Cici">
+                <input type="text" placeholder="臨時加入(女)...">
             </div>
-        </div>
-        
-        <div class="vip-section">
-            <label style="font-weight:bold;">🌟 特別來賓：</label>
-            <input type="text" id="vip" value="EC" style="padding: 5px; width: 100px; margin-left:10px;">
         </div>
 
         <button onclick="generateTeams()">一鍵隨機分隊</button>
@@ -230,6 +220,44 @@
     </div>
 
     <script>
+        // --- 儲存與讀取名單功能 ---
+        function saveNames() {
+            const maleInputs = Array.from(document.querySelectorAll('#male-inputs input')).map(i => i.value);
+            const femaleInputs = Array.from(document.querySelectorAll('#female-inputs input')).map(i => i.value);
+            localStorage.setItem('alcoholRun_maleNames', JSON.stringify(maleInputs));
+            localStorage.setItem('alcoholRun_femaleNames', JSON.stringify(femaleInputs));
+        }
+
+        function loadNames() {
+            const savedMale = localStorage.getItem('alcoholRun_maleNames');
+            const savedFemale = localStorage.getItem('alcoholRun_femaleNames');
+            
+            if (savedMale) {
+                const maleNames = JSON.parse(savedMale);
+                const maleInputs = document.querySelectorAll('#male-inputs input');
+                maleNames.forEach((name, index) => {
+                    if (maleInputs[index]) maleInputs[index].value = name;
+                });
+            }
+            
+            if (savedFemale) {
+                const femaleNames = JSON.parse(savedFemale);
+                const femaleInputs = document.querySelectorAll('#female-inputs input');
+                femaleNames.forEach((name, index) => {
+                    if (femaleInputs[index]) femaleInputs[index].value = name;
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNames();
+            const allInputs = document.querySelectorAll('.name-list input');
+            allInputs.forEach(input => {
+                input.addEventListener('input', saveNames);
+            });
+        });
+
+        // --- 分組與抽籤功能 ---
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -239,11 +267,11 @@
         }
 
         function selectCaptain(team) {
+            if(team.length === 0) return 0; // 防呆
             let weights = [];
             let totalWeight = 0;
             for(let i = 0; i < team.length; i++) {
                 let name = team[i].name.trim();
-                // 如果是 James 或 MK，被選中隊長的機率稍微提高 (維持原有邏輯)
                 if(name.toLowerCase() === 'james' || name.toUpperCase() === 'MK') {
                     weights.push(120); totalWeight += 120;
                 } else {
@@ -260,8 +288,9 @@
         }
 
         function formatTeamHTML(team, colorClass, title) {
-            // 分類隊員
-            const captain = team.find(m => m.isCaptain);
+            if(team.length === 0) return '';
+            
+            const captain = team.find(m => m.isCaptain) || team[0];
             const males = team.filter(m => m.gender === 'M' && !m.isCaptain).map(m => m.name);
             const females = team.filter(m => m.gender === 'F' && !m.isCaptain).map(m => m.name);
 
@@ -269,49 +298,57 @@
                 <div class="team-display">
                     <span class="team-title" style="color:${colorClass}">${title} (${team.length}人)</span>
                     <div class="member-line">👑 <strong>隊長：</strong><span style="color:#c0392b; font-weight:bold;">${captain.name}</span></div>
-                    <div class="member-line">👦 <strong>男生：</strong>${males.join('、')}</div>
-                    <div class="member-line">👧 <strong>女生：</strong>${females.join('、')}</div>
+                    <div class="member-line">👦 <strong>男生：</strong>${males.length > 0 ? males.join('、') : '無'}</div>
+                    <div class="member-line">👧 <strong>女生：</strong>${females.length > 0 ? females.join('、') : '無'}</div>
                 </div>
             `;
         }
 
         function generateTeams() {
+            // 過濾掉空白欄位，支援任意人數
             let malePool = Array.from(document.querySelectorAll('#male-inputs input')).map(i => i.value).filter(v => v.trim() !== '');
             let femalePool = Array.from(document.querySelectorAll('#female-inputs input')).map(i => i.value).filter(v => v.trim() !== '');
-            let vip = document.getElementById('vip').value.trim();
 
-            // 確保名單各有 9 人參與打亂
-            malePool = shuffleArray(malePool).slice(0, 9);
-            femalePool = shuffleArray(femalePool).slice(0, 9);
+            malePool = shuffleArray(malePool);
+            femalePool = shuffleArray(femalePool);
 
-            // 決定多出的一男一女如何分配：隨機由一隊拿5男4女，另一隊拿4男5女
-            let team1GetsExtraMale = Math.random() > 0.5;
-            let t1MaleCount = team1GetsExtraMale ? 5 : 4;
-            let t1FemaleCount = team1GetsExtraMale ? 4 : 5;
+            // 動態分配男生：平分，如果有單數則隨機一隊多一人
+            let t1MaleCount = Math.floor(malePool.length / 2);
+            let t2MaleCount = malePool.length - t1MaleCount;
+            if (malePool.length % 2 !== 0 && Math.random() > 0.5) {
+                [t1MaleCount, t2MaleCount] = [t2MaleCount, t1MaleCount];
+            }
 
-            // 分配男生
-            let t1_m = malePool.slice(0, t1MaleCount).map(n => ({name: n, gender: 'M'}));
-            let t2_m = malePool.slice(t1MaleCount, 9).map(n => ({name: n, gender: 'M'}));
-
-            // 分配女生
-            let t1_f = femalePool.slice(0, t1FemaleCount).map(n => ({name: n, gender: 'F'}));
-            let t2_f = femalePool.slice(t1FemaleCount, 9).map(n => ({name: n, gender: 'F'}));
-
-            let team1 = [...t1_m, ...t1_f]; // 基本會是 9人
-            let team2 = [...t2_m, ...t2_f]; // 基本會是 9人
-
-            // VIP 加入 (隨機加入某一隊)
-            if (vip !== "") {
-                if(Math.random() > 0.5) {
-                    team1.push({name: vip, gender: 'F'}); 
-                } else {
-                    team2.push({name: vip, gender: 'F'});
+            // 動態分配女生：為了讓兩隊總人數平衡，看哪一隊男生比較少，就把多出來的女生優先給那隊
+            let t1FemaleCount = Math.floor(femalePool.length / 2);
+            let t2FemaleCount = femalePool.length - t1FemaleCount;
+            
+            if (t1MaleCount > t2MaleCount) {
+                t1FemaleCount = Math.floor(femalePool.length / 2);
+                t2FemaleCount = femalePool.length - t1FemaleCount;
+            } else if (t2MaleCount > t1MaleCount) {
+                t2FemaleCount = Math.floor(femalePool.length / 2);
+                t1FemaleCount = femalePool.length - t2FemaleCount;
+            } else {
+                // 如果男生一樣多，女生單數時隨機分配
+                if (femalePool.length % 2 !== 0 && Math.random() > 0.5) {
+                    [t1FemaleCount, t2FemaleCount] = [t2FemaleCount, t1FemaleCount];
                 }
             }
 
-            // 選隊長
-            team1[selectCaptain(team1)].isCaptain = true;
-            team2[selectCaptain(team2)].isCaptain = true;
+            // 建立隊伍
+            let t1_m = malePool.slice(0, t1MaleCount).map(n => ({name: n, gender: 'M'}));
+            let t2_m = malePool.slice(t1MaleCount).map(n => ({name: n, gender: 'M'}));
+
+            let t1_f = femalePool.slice(0, t1FemaleCount).map(n => ({name: n, gender: 'F'}));
+            let t2_f = femalePool.slice(t1FemaleCount).map(n => ({name: n, gender: 'F'}));
+
+            let team1 = [...t1_m, ...t1_f];
+            let team2 = [...t2_m, ...t2_f];
+
+            // 選隊長 (確保隊伍有人才選)
+            if(team1.length > 0) team1[selectCaptain(team1)].isCaptain = true;
+            if(team2.length > 0) team2[selectCaptain(team2)].isCaptain = true;
 
             const resultDiv = document.getElementById('team-result');
             resultDiv.style.display = 'block';
