@@ -131,23 +131,27 @@
         <div class="input-grid">
             <div class="name-list" id="male-inputs">
                 <h3>男生名單</h3>
-                <input type="text" value="MK">
-                <input type="text" value="james">
                 <input type="text" value="阿文">
+                <input type="text" value="James">
+                <input type="text" value="MK">
+                <input type="text" value="姊姊">
+                <input type="text" value="史帝夫">
+                <input type="text" value="A紮男">
                 <input type="text" value="史迪">
-                <input type="text" id="m5" value="andy">
-                <input type="text" id="m6" value="台北E">
-                <input type="text" id="m7" value="楊過">
+                <input type="text" value="Rich">
+                <input type="text" value="Aden">
             </div>
             <div class="name-list" id="female-inputs">
                 <h3>女生名單</h3>
-                <input type="text" value="Bella">
+                <input type="text" value="Crystal">
                 <input type="text" value="琳琳">
-                <input type="text" value="crystal">
+                <input type="text" value="貝拉">
+                <input type="text" value="小BOSS">
+                <input type="text" value="蜜糖">
+                <input type="text" value="33">
                 <input type="text" value="奇奇">
-                <input type="text" value="cindy">
-                <input type="text" value="台北D">
-                <input type="text" value="小龍女">
+                <input type="text" value="Mia">
+                <input type="text" value="Cici">
             </div>
         </div>
         
@@ -239,7 +243,8 @@
             let totalWeight = 0;
             for(let i = 0; i < team.length; i++) {
                 let name = team[i].name.trim();
-                if(name === 'james' || name === 'MK') {
+                // 如果是 James 或 MK，被選中隊長的機率稍微提高 (維持原有邏輯)
+                if(name.toLowerCase() === 'james' || name.toUpperCase() === 'MK') {
                     weights.push(120); totalWeight += 120;
                 } else {
                     weights.push(100); totalWeight += 100;
@@ -271,25 +276,38 @@
         }
 
         function generateTeams() {
-            let malePool = Array.from(document.querySelectorAll('#male-inputs input')).map(i => i.value).filter(v => v !== '');
-            let femalePool = Array.from(document.querySelectorAll('#female-inputs input')).map(i => i.value).filter(v => v !== '');
-            let vip = document.getElementById('vip').value;
+            let malePool = Array.from(document.querySelectorAll('#male-inputs input')).map(i => i.value).filter(v => v.trim() !== '');
+            let femalePool = Array.from(document.querySelectorAll('#female-inputs input')).map(i => i.value).filter(v => v.trim() !== '');
+            let vip = document.getElementById('vip').value.trim();
 
-            // 隨機打亂後各取 6 人 (維持 3M3F 兩隊的基本規模)
-            malePool = shuffleArray(malePool).slice(0, 6);
-            femalePool = shuffleArray(femalePool).slice(0, 6);
+            // 確保名單各有 9 人參與打亂
+            malePool = shuffleArray(malePool).slice(0, 9);
+            femalePool = shuffleArray(femalePool).slice(0, 9);
 
-            // 包裝成物件
-            let t1_m = malePool.slice(0, 3).map(n => ({name: n, gender: 'M'}));
-            let t2_m = malePool.slice(3, 6).map(n => ({name: n, gender: 'M'}));
-            let t1_f = femalePool.slice(0, 3).map(n => ({name: n, gender: 'F'}));
-            let t2_f = femalePool.slice(3, 6).map(n => ({name: n, gender: 'F'}));
+            // 決定多出的一男一女如何分配：隨機由一隊拿5男4女，另一隊拿4男5女
+            let team1GetsExtraMale = Math.random() > 0.5;
+            let t1MaleCount = team1GetsExtraMale ? 5 : 4;
+            let t1FemaleCount = team1GetsExtraMale ? 4 : 5;
 
-            let team1 = [...t1_m, ...t1_f];
-            let team2 = [...t2_m, ...t2_f];
+            // 分配男生
+            let t1_m = malePool.slice(0, t1MaleCount).map(n => ({name: n, gender: 'M'}));
+            let t2_m = malePool.slice(t1MaleCount, 9).map(n => ({name: n, gender: 'M'}));
 
-            // VIP 加入
-            if(Math.random() > 0.5) team1.push({name: vip, gender: 'F'}); else team2.push({name: vip, gender: 'F'});
+            // 分配女生
+            let t1_f = femalePool.slice(0, t1FemaleCount).map(n => ({name: n, gender: 'F'}));
+            let t2_f = femalePool.slice(t1FemaleCount, 9).map(n => ({name: n, gender: 'F'}));
+
+            let team1 = [...t1_m, ...t1_f]; // 基本會是 9人
+            let team2 = [...t2_m, ...t2_f]; // 基本會是 9人
+
+            // VIP 加入 (隨機加入某一隊)
+            if (vip !== "") {
+                if(Math.random() > 0.5) {
+                    team1.push({name: vip, gender: 'F'}); 
+                } else {
+                    team2.push({name: vip, gender: 'F'});
+                }
+            }
 
             // 選隊長
             team1[selectCaptain(team1)].isCaptain = true;
