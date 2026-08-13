@@ -83,6 +83,16 @@
         .btn-draw {
             background-color: #e67e22;
         }
+        .btn-draw:hover {
+            background-color: #d35400;
+        }
+        .btn-settings {
+            background-color: #34495e;
+            margin-top: 30px;
+        }
+        .btn-settings:hover {
+            background-color: #2c3e50;
+        }
         .result-box {
             margin-top: 15px;
             padding: 15px;
@@ -101,6 +111,34 @@
         }
         .team-title { font-weight: bold; font-size: 20px; margin-bottom: 10px; display: block; }
         .member-line { margin: 5px 0; }
+        
+        /* 彈出視窗 (Modal) 樣式 */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto; 
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%; 
+            max-width: 800px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
         textarea {
             width: 100%;
             height: 150px;
@@ -109,6 +147,7 @@
             border-radius: 4px;
             box-sizing: border-box;
             resize: vertical;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -154,10 +193,35 @@
         <div id="team-result" class="result-box" style="display: none;"></div>
     </div>
 
-    <!-- 遊戲、酒單籤筒保持原樣 -->
+    <!-- 精簡後的抽籤區塊 -->
     <div class="card">
-        <h2>🅰️ 遊戲籤筒 (行動關卡)</h2>
-        <textarea id="boxA">1 一人戴眼罩，另一人只能透過「扶肩膀」或「牽手」引導到下一間7-11。
+        <h2>🅰️ 遊戲籤 (行動關卡)</h2>
+        <button class="btn-draw" onclick="drawGame('boxA', 'resultA')">一鍵抽取 遊戲籤</button>
+        <div id="resultA" class="result-box" style="display: none;"></div>
+    </div>
+
+    <div class="card">
+        <h2>🅱️ 喝酒遊戲 (駐點遊戲)</h2>
+        <button class="btn-draw" onclick="drawGame('boxB', 'resultB')">一鍵抽取 喝酒遊戲</button>
+        <div id="resultB" class="result-box" style="display: none;"></div>
+    </div>
+
+    <div class="card">
+        <h2>🍻 7-11 盲飲酒單</h2>
+        <button class="btn-draw" onclick="drawGame('boxC', 'resultC')">一鍵抽取 7-11 酒款</button>
+        <div id="resultC" class="result-box" style="display: none;"></div>
+    </div>
+
+    <!-- 最下方設定按鈕 -->
+    <button class="btn-settings" onclick="openSettings()">⚙️ 編輯遊戲與酒單內容</button>
+
+    <!-- 編輯內容彈出視窗 (Modal) -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-top:0; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; color:#2980b9;">⚙️ 編輯內容 (輸入即自動儲存)</h2>
+            
+            <h3>🅰️ 遊戲籤筒 (行動關卡)</h3>
+            <textarea id="boxA">1 一人戴眼罩，另一人只能透過「扶肩膀」或「牽手」引導到下一間7-11。
 2 公主抱到下一關。(體力不支可以換人如全員男孩放棄需每人喝一杯)
 3 全隊男女手牽手到下一關
 4 全隊男女交錯搭火車到下一關
@@ -178,13 +242,9 @@
 19 選出 ? 位戴著"頭套"到下一關
 20 隊長福利可自由選對方隊伍一位做任何事
 21 騎馬打仗二位男孩當馬兒，選一位女孩上馬到下一關</textarea>
-        <button class="btn-draw" onclick="drawGame('boxA', 'resultA')">一鍵抽取 遊戲籤</button>
-        <div id="resultA" class="result-box" style="display: none;"></div>
-    </div>
 
-    <div class="card">
-        <h2>🅱️ 喝酒遊戲籤筒 (駐點遊戲)</h2>
-        <textarea id="boxB">1 五、十、十五
+            <h3>🅱️ 喝酒遊戲籤筒 (駐點遊戲)</h3>
+            <textarea id="boxB">1 五、十、十五
 2 我有你沒有
 3 黑白配
 4 人緣好...指一個人，被指最多的人喝。
@@ -194,13 +254,9 @@
 8 抓鬼遊戲
 9 國王遊戲
 10 隊長指定敵對二位喝</textarea>
-        <button class="btn-draw" onclick="drawGame('boxB', 'resultB')">一鍵抽取 喝酒遊戲</button>
-        <div id="resultB" class="result-box" style="display: none;"></div>
-    </div>
 
-    <div class="card">
-        <h2>🍻 7-11 盲飲酒單籤筒</h2>
-        <textarea id="boxC">1 金牌台灣啤酒
+            <h3>🍻 7-11 盲飲酒單籤筒</h3>
+            <textarea id="boxC">1 金牌台灣啤酒
 2 18天台灣生啤酒
 3 Kirin 冰結 水果調酒
 4 HOROYOI 微醉沙瓦
@@ -215,20 +271,42 @@
 13 Kirin 麒麟一番搾
 14 傑克丹尼 可樂威士忌調酒
 15 絕對伏特加 Absolut (小樣酒系列)</textarea>
-        <button class="btn-draw" onclick="drawGame('boxC', 'resultC')">一鍵抽取 7-11 酒款</button>
-        <div id="resultC" class="result-box" style="display: none;"></div>
+            
+            <button onclick="closeSettings()" style="background-color: #27ae60; margin-top: 25px;">完成並關閉</button>
+        </div>
     </div>
 
     <script>
-        // --- 儲存與讀取名單功能 ---
-        function saveNames() {
+        // --- Modal 彈出視窗控制 ---
+        function openSettings() {
+            document.getElementById('settingsModal').style.display = 'block';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        // 點擊視窗外部也能關閉
+        window.onclick = function(event) {
+            const modal = document.getElementById('settingsModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // --- 儲存與讀取全域功能（包含姓名與所有籤筒） ---
+        function saveAllData() {
             const maleInputs = Array.from(document.querySelectorAll('#male-inputs input')).map(i => i.value);
             const femaleInputs = Array.from(document.querySelectorAll('#female-inputs input')).map(i => i.value);
             localStorage.setItem('alcoholRun_maleNames', JSON.stringify(maleInputs));
             localStorage.setItem('alcoholRun_femaleNames', JSON.stringify(femaleInputs));
+
+            localStorage.setItem('alcoholRun_boxA', document.getElementById('boxA').value);
+            localStorage.setItem('alcoholRun_boxB', document.getElementById('boxB').value);
+            localStorage.setItem('alcoholRun_boxC', document.getElementById('boxC').value);
         }
 
-        function loadNames() {
+        function loadAllData() {
             const savedMale = localStorage.getItem('alcoholRun_maleNames');
             const savedFemale = localStorage.getItem('alcoholRun_femaleNames');
             
@@ -247,13 +325,23 @@
                     if (femaleInputs[index]) femaleInputs[index].value = name;
                 });
             }
+
+            const savedBoxA = localStorage.getItem('alcoholRun_boxA');
+            const savedBoxB = localStorage.getItem('alcoholRun_boxB');
+            const savedBoxC = localStorage.getItem('alcoholRun_boxC');
+
+            if (savedBoxA !== null) document.getElementById('boxA').value = savedBoxA;
+            if (savedBoxB !== null) document.getElementById('boxB').value = savedBoxB;
+            if (savedBoxC !== null) document.getElementById('boxC').value = savedBoxC;
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadNames();
-            const allInputs = document.querySelectorAll('.name-list input');
+            loadAllData();
+
+            // 綁定所有姓名輸入框、籤筒的自動儲存事件
+            const allInputs = document.querySelectorAll('.name-list input, textarea');
             allInputs.forEach(input => {
-                input.addEventListener('input', saveNames);
+                input.addEventListener('input', saveAllData);
             });
         });
 
@@ -267,7 +355,7 @@
         }
 
         function selectCaptain(team) {
-            if(team.length === 0) return 0; // 防呆
+            if(team.length === 0) return 0;
             let weights = [];
             let totalWeight = 0;
             for(let i = 0; i < team.length; i++) {
@@ -305,21 +393,18 @@
         }
 
         function generateTeams() {
-            // 過濾掉空白欄位，支援任意人數
             let malePool = Array.from(document.querySelectorAll('#male-inputs input')).map(i => i.value).filter(v => v.trim() !== '');
             let femalePool = Array.from(document.querySelectorAll('#female-inputs input')).map(i => i.value).filter(v => v.trim() !== '');
 
             malePool = shuffleArray(malePool);
             femalePool = shuffleArray(femalePool);
 
-            // 動態分配男生：平分，如果有單數則隨機一隊多一人
             let t1MaleCount = Math.floor(malePool.length / 2);
             let t2MaleCount = malePool.length - t1MaleCount;
             if (malePool.length % 2 !== 0 && Math.random() > 0.5) {
                 [t1MaleCount, t2MaleCount] = [t2MaleCount, t1MaleCount];
             }
 
-            // 動態分配女生：為了讓兩隊總人數平衡，看哪一隊男生比較少，就把多出來的女生優先給那隊
             let t1FemaleCount = Math.floor(femalePool.length / 2);
             let t2FemaleCount = femalePool.length - t1FemaleCount;
             
@@ -330,13 +415,11 @@
                 t2FemaleCount = Math.floor(femalePool.length / 2);
                 t1FemaleCount = femalePool.length - t2FemaleCount;
             } else {
-                // 如果男生一樣多，女生單數時隨機分配
                 if (femalePool.length % 2 !== 0 && Math.random() > 0.5) {
                     [t1FemaleCount, t2FemaleCount] = [t2FemaleCount, t1FemaleCount];
                 }
             }
 
-            // 建立隊伍
             let t1_m = malePool.slice(0, t1MaleCount).map(n => ({name: n, gender: 'M'}));
             let t2_m = malePool.slice(t1MaleCount).map(n => ({name: n, gender: 'M'}));
 
@@ -346,7 +429,6 @@
             let team1 = [...t1_m, ...t1_f];
             let team2 = [...t2_m, ...t2_f];
 
-            // 選隊長 (確保隊伍有人才選)
             if(team1.length > 0) team1[selectCaptain(team1)].isCaptain = true;
             if(team2.length > 0) team2[selectCaptain(team2)].isCaptain = true;
 
@@ -360,7 +442,12 @@
             const items = text.split('\n').filter(i => i.trim() !== '');
             const resultDiv = document.getElementById(resultId);
             resultDiv.style.display = 'block';
-            if(items.length === 0) return;
+            
+            if(items.length === 0) {
+                resultDiv.innerHTML = `<span style="color:red;">籤筒是空的，請至設定補充內容！</span>`;
+                return;
+            }
+            
             const randomIndex = Math.floor(Math.random() * items.length);
             resultDiv.innerHTML = `🎯 <strong>抽中：</strong> <br><br> <span style="color:#d35400; font-size: 22px; font-weight: bold;">${items[randomIndex]}</span>`;
         }
