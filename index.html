@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X 酒精路跑之我沒醉X</title>
+    <title>X 歡樂酒精路跑 X</title>
     <style>
         /* 整體微醺派對與聯誼氛圍背景 */
         body {
@@ -72,6 +72,12 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .name-list {
@@ -149,7 +155,6 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: none;
             backdrop-filter: blur(5px);
-            margin-top: 30px;
         }
 
         .btn-settings:hover {
@@ -229,12 +234,23 @@
             border-color: #a18cd1;
             box-shadow: 0 0 8px rgba(161, 140, 209, 0.5);
         }
+
+        .action-bar {
+            display: flex; 
+            gap: 15px; 
+            margin-top: 30px;
+        }
+        @media (max-width: 600px) {
+            .action-bar {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🍺 酒精路跑之我沒醉 🏃‍♂️💖</h1>
+        <h1>🍺 歡樂酒精路跑 🏃‍♂️💖</h1>
     </header>
 
     <!-- 分組系統 -->
@@ -287,8 +303,11 @@
         <div id="resultB" class="result-box" style="display: none;"></div>
     </div>
 
-    <!-- 最下方設定按鈕 -->
-    <button class="btn-settings" onclick="openSettings()">⚙️ 進入後台：編輯遊戲與酒單內容</button>
+    <!-- 最下方設定與同步按鈕 -->
+    <div class="action-bar">
+        <button class="btn-settings" onclick="openSettings()" style="margin-top: 0;">⚙️ 進入後台：編輯遊戲與酒單</button>
+        <button class="btn-settings" onclick="copyShareLink()" style="margin-top: 0; background: rgba(56, 239, 125, 0.15); border-color: rgba(56, 239, 125, 0.4);">🔗 複製網址 (跨裝置同步)</button>
+    </div>
 
     <!-- 編輯內容彈出視窗 (Modal) -->
     <div id="settingsModal" class="modal">
@@ -348,7 +367,6 @@
             document.getElementById('settingsModal').style.display = 'none';
         }
 
-        // 點擊視窗外部也能關閉
         window.onclick = function(event) {
             const modal = document.getElementById('settingsModal');
             if (event.target == modal) {
@@ -356,45 +374,108 @@
             }
         }
 
-        // --- 儲存與讀取全域功能（包含姓名與所有籤筒） ---
+        // --- 網址與本地儲存同步功能 ---
+        function encodeData(data) {
+            const jsonStr = JSON.stringify(data);
+            const utf8Bytes = new TextEncoder().encode(jsonStr);
+            const binaryStr = Array.from(utf8Bytes).map(b => String.fromCharCode(b)).join('');
+            return btoa(binaryStr);
+        }
+
+        function decodeData(base64Str) {
+            const binaryStr = atob(base64Str);
+            const utf8Bytes = new Uint8Array(binaryStr.split('').map(c => c.charCodeAt(0)));
+            const jsonStr = new TextDecoder().decode(utf8Bytes);
+            return JSON.parse(jsonStr);
+        }
+
         function saveAllData() {
             const maleInputs = Array.from(document.querySelectorAll('#male-inputs input')).map(i => i.value);
             const femaleInputs = Array.from(document.querySelectorAll('#female-inputs input')).map(i => i.value);
-            localStorage.setItem('alcoholRun_maleNames', JSON.stringify(maleInputs));
-            localStorage.setItem('alcoholRun_femaleNames', JSON.stringify(femaleInputs));
+            
+            const data = {
+                m: maleInputs,
+                f: femaleInputs,
+                a: document.getElementById('boxA').value,
+                b: document.getElementById('boxB').value,
+                c: document.getElementById('boxC').value
+            };
 
-            localStorage.setItem('alcoholRun_boxA', document.getElementById('boxA').value);
-            localStorage.setItem('alcoholRun_boxB', document.getElementById('boxB').value);
-            localStorage.setItem('alcoholRun_boxC', document.getElementById('boxC').value);
+            // 1. 儲存到本地 (本地單機備份)
+            localStorage.setItem('alcoholRunData', JSON.stringify(data));
+            
+            // 2. 更新到網址列 (跨裝置分享用)
+            try {
+                const encoded = encodeData(data);
+                window.history.replaceState(null, null, "#" + encoded);
+            } catch (e) {
+                console.error("網址更新失敗", e);
+            }
         }
 
         function loadAllData() {
-            const savedMale = localStorage.getItem('alcoholRun_maleNames');
-            const savedFemale = localStorage.getItem('alcoholRun_femaleNames');
+            let data = null;
             
-            if (savedMale) {
-                const maleNames = JSON.parse(savedMale);
+            // 1. 優先讀取網址中的資料 (確保點擊連結的人能看到同步內容)
+            if (window.location.hash.length > 1) {
+                try {
+                    data = decodeData(window.location.hash.substring(1));
+                } catch (e) {
+                    console.error("網址解析失敗，改用本地資料", e);
+                }
+            }
+            
+            // 2. 如果網址沒資料，讀取本地儲存
+            if (!data) {
+                const saved = localStorage.getItem('alcoholRunData');
+                if (saved) {
+                    try {
+                        data = JSON.parse(saved);
+                    } catch (e) {}
+                }
+            }
+            
+            // 3. 兼容舊版資料
+            if (!data && localStorage.getItem('alcoholRun_maleNames')) {
+                data = {
+                    m: JSON.parse(localStorage.getItem('alcoholRun_maleNames') || "[]"),
+                    f: JSON.parse(localStorage.getItem('alcoholRun_femaleNames') || "[]"),
+                    a: localStorage.getItem('alcoholRun_boxA') || "",
+                    b: localStorage.getItem('alcoholRun_boxB') || "",
+                    c: localStorage.getItem('alcoholRun_boxC') || ""
+                };
+            }
+
+            // 4. 將資料填入畫面
+            if (data) {
                 const maleInputs = document.querySelectorAll('#male-inputs input');
-                maleNames.forEach((name, index) => {
+                (data.m || []).forEach((name, index) => {
                     if (maleInputs[index]) maleInputs[index].value = name;
                 });
-            }
-            
-            if (savedFemale) {
-                const femaleNames = JSON.parse(savedFemale);
+
                 const femaleInputs = document.querySelectorAll('#female-inputs input');
-                femaleNames.forEach((name, index) => {
+                (data.f || []).forEach((name, index) => {
                     if (femaleInputs[index]) femaleInputs[index].value = name;
                 });
+
+                if (data.a) document.getElementById('boxA').value = data.a;
+                if (data.b) document.getElementById('boxB').value = data.b;
+                if (data.c) document.getElementById('boxC').value = data.c;
+                
+                // 載入完成後，自動更新一次網址確保穩定
+                saveAllData();
             }
+        }
 
-            const savedBoxA = localStorage.getItem('alcoholRun_boxA');
-            const savedBoxB = localStorage.getItem('alcoholRun_boxB');
-            const savedBoxC = localStorage.getItem('alcoholRun_boxC');
-
-            if (savedBoxA !== null) document.getElementById('boxA').value = savedBoxA;
-            if (savedBoxB !== null) document.getElementById('boxB').value = savedBoxB;
-            if (savedBoxC !== null) document.getElementById('boxC').value = savedBoxC;
+        function copyShareLink() {
+            // 先儲存確保拿到最新網址
+            saveAllData(); 
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert("✅ 專屬網址已複製！\n\n請將此網址傳送到你的手機（或分享給朋友），打開後就會自動同步到目前最新的名單！");
+            }).catch(err => {
+                alert("複製失敗，請手動複製瀏覽器上方的完整網址！");
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
