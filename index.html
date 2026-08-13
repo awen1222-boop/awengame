@@ -5,114 +5,183 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X 酒精路跑之我沒醉X</title>
     <style>
+        /* 整體微醺派對與聯誼氛圍背景 */
         body {
             font-family: "Microsoft JhengHei", sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
+            background: radial-gradient(circle at top right, #3a1c71, #d76d77, #ffaf7b);
+            background-attachment: fixed;
+            color: #fff;
             max-width: 900px;
             margin: 0 auto;
             padding: 20px;
         }
+
+        /* 玻璃擬態 (Glassmorphism) 卡片設計 */
         header {
-            background: linear-gradient(180deg, #f1c40f 0%, #e67e22 100%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             padding: 40px 20px;
-            border-radius: 15px;
+            border-radius: 20px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             margin-bottom: 30px;
             position: relative;
             overflow: hidden;
         }
+        
         header::before {
-            content: "◦ ◦ ◦ ◦ ◦";
+            content: "🥂 🍸 🍷 🍻";
             position: absolute;
             bottom: 10px;
             left: 20px;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.3);
             font-size: 24px;
+            letter-spacing: 15px;
         }
+
         h1 {
             margin: 0;
-            color: white;
-            font-size: 32px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 36px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px #ff6b81;
+            letter-spacing: 2px;
         }
+
         .card {
-            background: #fff;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: rgba(20, 20, 35, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
+
         .card h2 {
             margin-top: 0;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid rgba(255, 107, 129, 0.5);
             padding-bottom: 10px;
-            color: #2980b9;
+            color: #ff9a9e;
+            text-shadow: 0 0 8px rgba(255, 154, 158, 0.5);
         }
+
         .input-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
+
         .name-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
+
+        .name-list h3 {
+            color: #a18cd1;
+            margin-bottom: 5px;
+        }
+
         .name-list input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.3s;
         }
+
+        .name-list input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #ff9a9e;
+            box-shadow: 0 0 8px rgba(255, 154, 158, 0.4);
+        }
+
+        .name-list input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* 漸層發光按鈕 */
         button {
-            background-color: #27ae60;
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
             color: white;
             border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 5px;
+            padding: 14px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
             cursor: pointer;
             width: 100%;
-            margin-top: 15px;
-            transition: background-color 0.3s;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
         }
+
         button:hover {
-            background-color: #2ecc71;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 65, 108, 0.6);
         }
-        .btn-draw {
-            background-color: #e67e22;
+
+        .btn-draw-action {
+            background: linear-gradient(45deg, #f12711, #f5af19);
+            box-shadow: 0 4px 15px rgba(245, 175, 25, 0.4);
         }
-        .btn-draw:hover {
-            background-color: #d35400;
+        
+        .btn-draw-action:hover {
+            box-shadow: 0 6px 20px rgba(245, 175, 25, 0.6);
         }
+
+        .btn-draw-combo {
+            background: linear-gradient(45deg, #8E2DE2, #4A00E0);
+            box-shadow: 0 4px 15px rgba(142, 45, 226, 0.4);
+        }
+
+        .btn-draw-combo:hover {
+            box-shadow: 0 6px 20px rgba(142, 45, 226, 0.6);
+        }
+
         .btn-settings {
-            background-color: #34495e;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: none;
+            backdrop-filter: blur(5px);
             margin-top: 30px;
         }
+
         .btn-settings:hover {
-            background-color: #2c3e50;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
         }
+
         .result-box {
-            margin-top: 15px;
-            padding: 15px;
-            background-color: #e8f8f5;
-            border-left: 5px solid #1abc9c;
-            border-radius: 4px;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-left: 5px solid #ff416c;
+            border-radius: 8px;
             font-size: 18px;
             line-height: 1.6;
+            color: #fff;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
+
         .team-display {
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+            padding: 15px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
         }
-        .team-title { font-weight: bold; font-size: 20px; margin-bottom: 10px; display: block; }
-        .member-line { margin: 5px 0; }
+
+        .team-title { font-weight: bold; font-size: 22px; margin-bottom: 12px; display: block; text-shadow: 0 0 5px currentColor; }
+        .member-line { margin: 8px 0; font-size: 16px; }
         
-        /* 彈出視窗 (Modal) 樣式 */
+        /* 彈出視窗 (Modal) 樣式 - 暗黑風格 */
         .modal {
             display: none; 
             position: fixed; 
@@ -122,47 +191,58 @@
             width: 100%; 
             height: 100%; 
             overflow: auto; 
-            background-color: rgba(0,0,0,0.6); 
-            backdrop-filter: blur(3px);
+            background-color: rgba(0,0,0,0.8); 
+            backdrop-filter: blur(8px);
         }
+        
         .modal-content {
-            background-color: #fff;
+            background: #1e1e2d;
+            color: #fff;
             margin: 5% auto; 
-            padding: 25px;
-            border-radius: 10px;
+            padding: 30px;
+            border-radius: 15px;
             width: 90%; 
             max-width: 800px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 30px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .modal-content h3 {
-            margin-top: 20px;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
+
+        .modal-content h2 { color: #ff9a9e; }
+        .modal-content h3 { color: #a18cd1; margin-top: 25px; margin-bottom: 10px; }
+        
         textarea {
             width: 100%;
-            height: 150px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            height: 130px;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
             box-sizing: border-box;
             resize: vertical;
-            font-size: 14px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #a18cd1;
+            box-shadow: 0 0 8px rgba(161, 140, 209, 0.5);
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🍺 X 酒精路跑之我沒醉X 🏃‍♂️</h1>
+        <h1>🍺 酒精路跑之我沒醉 🏃‍♂️💖</h1>
     </header>
 
     <!-- 分組系統 -->
     <div class="card">
-        <h2>👥 隨機分隊</h2>
+        <h2>👥 浪漫隨機配對分隊</h2>
         <div class="input-grid">
             <div class="name-list" id="male-inputs">
-                <h3>男生名單</h3>
+                <h3>🕺 男生名單</h3>
                 <input type="text" value="阿文">
                 <input type="text" value="James">
                 <input type="text" value="MK">
@@ -175,7 +255,7 @@
                 <input type="text" placeholder="臨時加入(男)...">
             </div>
             <div class="name-list" id="female-inputs">
-                <h3>女生名單</h3>
+                <h3>💃 女生名單</h3>
                 <input type="text" value="Crystal">
                 <input type="text" value="琳琳">
                 <input type="text" value="貝拉">
@@ -189,90 +269,72 @@
             </div>
         </div>
 
-        <button onclick="generateTeams()">一鍵隨機分隊</button>
+        <button onclick="generateTeams()">一鍵心跳隨機分隊</button>
         <div id="team-result" class="result-box" style="display: none;"></div>
     </div>
 
-    <!-- 精簡後的抽籤區塊 -->
+    <!-- 行動關卡 -->
     <div class="card">
-        <h2>🅰️ 遊戲籤 (行動關卡)</h2>
-        <button class="btn-draw" onclick="drawGame('boxA', 'resultA')">一鍵抽取 遊戲籤</button>
+        <h2>🅰️ 聯誼行動籤 (移動關卡)</h2>
+        <button class="btn-draw-action" onclick="drawGame('boxA', 'resultA')">🎲 抽取 行動關卡任務</button>
         <div id="resultA" class="result-box" style="display: none;"></div>
     </div>
 
+    <!-- 喝酒遊戲 + 盲飲酒單 雙效合併區塊 -->
     <div class="card">
-        <h2>🅱️ 喝酒遊戲 (駐點遊戲)</h2>
-        <button class="btn-draw" onclick="drawGame('boxB', 'resultB')">一鍵抽取 喝酒遊戲</button>
+        <h2>🅱️ 駐點心醉挑戰 (遊戲 + 盲飲)</h2>
+        <button class="btn-draw-combo" onclick="drawCombinedGame('boxB', 'boxC', 'resultB')">🥂 一鍵雙抽：派對遊戲 ＆ 專屬酒單</button>
         <div id="resultB" class="result-box" style="display: none;"></div>
     </div>
 
-    <div class="card">
-        <h2>🍻 7-11 盲飲酒單</h2>
-        <button class="btn-draw" onclick="drawGame('boxC', 'resultC')">一鍵抽取 7-11 酒款</button>
-        <div id="resultC" class="result-box" style="display: none;"></div>
-    </div>
-
     <!-- 最下方設定按鈕 -->
-    <button class="btn-settings" onclick="openSettings()">⚙️ 編輯遊戲與酒單內容</button>
+    <button class="btn-settings" onclick="openSettings()">⚙️ 進入後台：編輯遊戲與酒單內容</button>
 
     <!-- 編輯內容彈出視窗 (Modal) -->
     <div id="settingsModal" class="modal">
         <div class="modal-content">
-            <h2 style="margin-top:0; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; color:#2980b9;">⚙️ 編輯內容 (輸入即自動儲存)</h2>
+            <h2 style="margin-top:0; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px;">⚙️ 編輯內容 (輸入即自動儲存)</h2>
             
-            <h3>🅰️ 遊戲籤筒 (行動關卡)</h3>
+            <h3>🅰️ 行動關卡籤筒</h3>
             <textarea id="boxA">1 一人戴眼罩，另一人只能透過「扶肩膀」或「牽手」引導到下一間7-11。
-2 公主抱到下一關。(體力不支可以換人如全員男孩放棄需每人喝一杯)
+2 隊內選出二位公主抱到下一關。(體力不支可以換人如全員男孩放棄需每人喝一杯)
 3 全隊男女手牽手到下一關
 4 全隊男女交錯搭火車到下一關
-5 一男一女兩兩手勾手橫著走到下一關
-6 拿一根吸管用嘴巴和鼻子夾住，如果中途吸管掉下來，懲罰蛙跳5下或開合跳10下
-7 便利商店買膠帶，兩人三腳走到下一關
-8 親親大亂鬥！全隊男女親親五秒「各自分組」不得與本來的伴侶執行遊戲
-9 老背少！挑一位男生背隊內年紀最小的女生走行至下一關，中間可換人但必須也是比女生年紀大者。
-10 愛的小秘密！隊內剪刀石頭布，最輸的兩個人與敵對進行真心話遊戲。回答一個私密問題。
-11 我殺豬養你呀！隊內挑選一位男性為敵對女性購買對方想吃的小零食，並以口對口餵敵方女生吃。
-12 老娘千杯不醉！隊內一位女生隨機找一位路人乾杯🍻並且說出「老娘千杯不醉」。
-13 一首歌的時間！隊內選出一位歌手，一路唱歌抵達下一站，中途如果歌曲結束下一關不管輸贏都要多喝一杯。
-14 魷魚🦑遊戲！全隊在人行道上尋找一根柱子玩123木頭人，最輸的下一站不管輸贏多喝一杯。
-15 愛上鐵達尼！隊內挑選一男一女擺出鐵達尼經典姿勢動作一路到下一關，路程中不能分開
-16 每隊自行選出一位女孩牽二位男孩到下一關
-17 每隊自行選出一位男孩牽二位女孩到下一關
-18 抽到此簽，隊伍男男互牽 女女互牽到下一關
-19 選出 ? 位戴著"頭套"到下一關
-20 隊長福利可自由選對方隊伍一位做任何事
-21 騎馬打仗二位男孩當馬兒，選一位女孩上馬到下一關</textarea>
+5 拿一根吸管用嘴巴和鼻子夾住，如果中途吸管掉下來，懲罰蛙跳5下或開合跳10下
+6 親親大亂鬥！全隊男女親親五秒「各自分組」不得與本來的伴侶執行遊戲
+7 隊內隨機配對，男生背女生到下一關。
+8 隊內剪刀石頭布，最贏那位為國王可指定任務
+9 愛上鐵達尼！隊內挑選一男一女擺出鐵達尼經典姿勢動作一路到下一關，路程中不能分開
+10 每隊自行選出一位女孩牽二位男孩到下一關
+11 每隊自行選出一位男孩牽二位女孩到下一關
+12 抽到此簽，隊伍男男互牽 女女互牽到下一關
+12 男生靠牆坐空氣椅，女生坐在男生的腿上維持 15 秒；或是全隊男女交錯坐前一人的腿上形成人肉椅子。
+13 隊長福利可自由選對方隊伍一位做任何事
+14 騎馬打仗二位男孩當馬兒，選一位女孩上馬到下一關
+15 隊內選出二位女孩，蒙眼選出二位男生擁抱10秒
+16 用繩子或膠帶將一男一女的腳綁在一起(二對)，且移動過程中兩人必須手牽手，走到指定區域。</textarea>
 
-            <h3>🅱️ 喝酒遊戲籤筒 (駐點遊戲)</h3>
-            <textarea id="boxB">1 五、十、十五
-2 我有你沒有
-3 黑白配
-4 人緣好...指一個人，被指最多的人喝。
-5 大老二(簡易版)
-6 成語接龍
-7 看誰比較快
-8 抓鬼遊戲
-9 國王遊戲
+            <h3>🅱️ 駐點喝酒遊戲籤筒</h3>
+            <textarea id="boxB">1 五、十、十五 兩人一組，喊中數字的人贏，輸的喝。
+2 我有你沒有 輪流說一件自己「沒做過」的事，有做過的人就喝。
+3 黑白配 經典手指方向遊戲，二人一組輸的的人喝。
+4 人緣好...大家數到三，指一個人，被指最多的人喝。
+5 大老二(簡易版)每人抽一張牌，點數最小的三個人負責喝。
+6 成語接龍 上一家的最後一字接下一家的第一字，斷掉就喝。
+7 看誰比較快 所有人一起乾杯，最後放下的那個人要加碼喝。
+8 抓鬼遊戲 隊長當鬼，鬼做什麼動作大家要跟著做，最後做的與"隊長"一起喝。
+9 國王遊戲 抽籤當國王，國王可以指名 1~6 號中的任意組合喝。
 10 隊長指定敵對二位喝</textarea>
 
             <h3>🍻 7-11 盲飲酒單籤筒</h3>
-            <textarea id="boxC">1 金牌台灣啤酒
-2 18天台灣生啤酒
-3 Kirin 冰結 水果調酒
-4 HOROYOI 微醉沙瓦
-5 海尼根 Heineken
-6 百威啤酒 Budweiser
-7 檸檬堂 日式檸檬沙瓦
-8 韓國真露燒酒
-9 SOMERSBY 夏日蜜蘋果酒
-10 WAT 瓶裝雞尾酒
-11 Asahi 朝日 Super Dry
-12 臺虎精釀系列
-13 Kirin 麒麟一番搾
-14 傑克丹尼 可樂威士忌調酒
-15 絕對伏特加 Absolut (小樣酒系列)</textarea>
+            <textarea id="boxC">1 低酒精飲料（0.5% ~ 5%）
+2 低酒精飲料（0.5% ~ 5%）
+3 低酒精飲料（0.5% ~ 5%）
+4 中酒精飲料（6% ~ 15%）
+5 中酒精飲料（6% ~ 15%）
+6 高酒精烈酒（20% ~ 58%+）</textarea>
             
-            <button onclick="closeSettings()" style="background-color: #27ae60; margin-top: 25px;">完成並關閉</button>
+            <button onclick="closeSettings()" style="background: linear-gradient(45deg, #11998e, #38ef7d); margin-top: 25px; box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);">✅ 完成並關閉</button>
         </div>
     </div>
 
@@ -385,7 +447,7 @@
             return `
                 <div class="team-display">
                     <span class="team-title" style="color:${colorClass}">${title} (${team.length}人)</span>
-                    <div class="member-line">👑 <strong>隊長：</strong><span style="color:#c0392b; font-weight:bold;">${captain.name}</span></div>
+                    <div class="member-line">👑 <strong>隊長：</strong><span style="color:#ffb199; font-weight:bold; font-size: 18px;">${captain.name}</span></div>
                     <div class="member-line">👦 <strong>男生：</strong>${males.length > 0 ? males.join('、') : '無'}</div>
                     <div class="member-line">👧 <strong>女生：</strong>${females.length > 0 ? females.join('、') : '無'}</div>
                 </div>
@@ -434,9 +496,10 @@
 
             const resultDiv = document.getElementById('team-result');
             resultDiv.style.display = 'block';
-            resultDiv.innerHTML = formatTeamHTML(team1, '#e74c3c', '🔴 第一隊') + formatTeamHTML(team2, '#3498db', '🔵 第二隊');
+            resultDiv.innerHTML = formatTeamHTML(team1, '#ff6b81', '🔴 烈焰紅隊') + formatTeamHTML(team2, '#7bed9f', '🔵 冰玉藍隊');
         }
 
+        // 單一抽籤 (適用於 A 關卡)
         function drawGame(boxId, resultId) {
             const text = document.getElementById(boxId).value;
             const items = text.split('\n').filter(i => i.trim() !== '');
@@ -444,12 +507,40 @@
             resultDiv.style.display = 'block';
             
             if(items.length === 0) {
-                resultDiv.innerHTML = `<span style="color:red;">籤筒是空的，請至設定補充內容！</span>`;
+                resultDiv.innerHTML = `<span style="color:#ff6b81;">籤筒是空的，請至設定補充內容！</span>`;
                 return;
             }
             
             const randomIndex = Math.floor(Math.random() * items.length);
-            resultDiv.innerHTML = `🎯 <strong>抽中：</strong> <br><br> <span style="color:#d35400; font-size: 22px; font-weight: bold;">${items[randomIndex]}</span>`;
+            resultDiv.innerHTML = `🎯 <strong>抽中任務：</strong> <br><br> <span style="color:#f5af19; font-size: 22px; font-weight: bold; text-shadow: 0 0 5px rgba(245,175,25,0.5);">${items[randomIndex]}</span>`;
+        }
+
+        // 雙重合併抽籤 (適用於 B 遊戲 + C 酒單)
+        function drawCombinedGame(boxId1, boxId2, resultId) {
+            const text1 = document.getElementById(boxId1).value;
+            const items1 = text1.split('\n').filter(i => i.trim() !== '');
+            
+            const text2 = document.getElementById(boxId2).value;
+            const items2 = text2.split('\n').filter(i => i.trim() !== '');
+
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.style.display = 'block';
+            
+            if(items1.length === 0 || items2.length === 0) {
+                resultDiv.innerHTML = `<span style="color:#ff6b81;">任務或酒單籤筒為空，請至設定補充內容！</span>`;
+                return;
+            }
+            
+            const random1 = Math.floor(Math.random() * items1.length);
+            const random2 = Math.floor(Math.random() * items2.length);
+
+            resultDiv.innerHTML = `
+                🃏 <strong>派對遊戲：</strong> <br>
+                <span style="color:#a8c0ff; font-size: 20px; font-weight: bold; display:block; margin: 10px 0 20px 0;">${items1[random1]}</span>
+                
+                🍻 <strong>搭配酒單：</strong> <br>
+                <span style="color:#ff9a9e; font-size: 22px; font-weight: bold; text-shadow: 0 0 8px rgba(255,154,158,0.5); display:block; margin-top: 10px;">${items2[random2]}</span>
+            `;
         }
     </script>
 </body>
