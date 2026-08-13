@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X 歡樂酒精路跑 X</title>
+    <!-- 引入 LZ-String 壓縮套件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <style>
         /* 整體微醺派對與聯誼氛圍背景 */
         body {
@@ -93,6 +95,8 @@
             border-radius: 8px;
             outline: none;
             transition: all 0.3s;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .name-list input:focus {
@@ -204,6 +208,7 @@
             max-width: 800px;
             box-shadow: 0 5px 30px rgba(0,0,0,0.7);
             border: 1px solid rgba(255,255,255,0.1);
+            box-sizing: border-box;
         }
 
         .modal-content h2 { color: #ff9a9e; }
@@ -300,7 +305,7 @@
     <!-- 最下方設定與同步按鈕 -->
     <div class="action-bar">
         <button class="btn-settings" onclick="openSettings()" style="margin-top: 0;">⚙️ 進入後台：編輯遊戲與酒單</button>
-        <button class="btn-settings" onclick="copyShareLink()" style="margin-top: 0; background: rgba(56, 239, 125, 0.15); border-color: rgba(56, 239, 125, 0.4);">🔗 複製網址 (跨裝置同步)</button>
+        <button class="btn-settings" onclick="copyShareLink()" style="margin-top: 0; background: rgba(56, 239, 125, 0.15); border-color: rgba(56, 239, 125, 0.4);">🔗 複製短網址 (跨裝置同步)</button>
     </div>
 
     <!-- 編輯內容彈出視窗 (Modal) -->
@@ -368,19 +373,33 @@
             }
         }
 
-        // --- 網址與本地儲存同步功能 ---
+        // --- 網址壓縮與本地儲存同步功能 ---
         function encodeData(data) {
             const jsonStr = JSON.stringify(data);
-            const utf8Bytes = new TextEncoder().encode(jsonStr);
-            const binaryStr = Array.from(utf8Bytes).map(b => String.fromCharCode(b)).join('');
-            return btoa(binaryStr);
+            // 使用 LZString 壓縮，大幅減少網址長度
+            return LZString.compressToEncodedURIComponent(jsonStr);
         }
 
-        function decodeData(base64Str) {
-            const binaryStr = atob(base64Str);
-            const utf8Bytes = new Uint8Array(binaryStr.split('').map(c => c.charCodeAt(0)));
-            const jsonStr = new TextDecoder().decode(utf8Bytes);
-            return JSON.parse(jsonStr);
+        function decodeData(hashStr) {
+            try {
+                // 先嘗試用 LZString 解壓縮 (新版短網址)
+                const jsonStr = LZString.decompressFromEncodedURIComponent(hashStr);
+                if (jsonStr) {
+                    return JSON.parse(jsonStr);
+                }
+            } catch (e) {
+                console.log("LZString 解壓失敗，嘗試舊版 Base64");
+            }
+            
+            try {
+                // 若失敗，退回使用舊版的 Base64 解碼 (相容舊網址)
+                const binaryStr = atob(hashStr);
+                const utf8Bytes = new Uint8Array(binaryStr.split('').map(c => c.charCodeAt(0)));
+                const decodedStr = new TextDecoder().decode(utf8Bytes);
+                return JSON.parse(decodedStr);
+            } catch (e) {
+                return null;
+            }
         }
 
         function saveAllData() {
@@ -398,7 +417,7 @@
             // 1. 儲存到本地 (本地單機備份)
             localStorage.setItem('alcoholRunData', JSON.stringify(data));
             
-            // 2. 更新到網址列 (跨裝置分享用)
+            // 2. 壓縮後更新到網址列 (跨裝置分享用)
             try {
                 const encoded = encodeData(data);
                 window.history.replaceState(null, null, "#" + encoded);
@@ -410,13 +429,9 @@
         function loadAllData() {
             let data = null;
             
-            // 1. 優先讀取網址中的資料 (確保點擊連結的人能看到同步內容)
+            // 1. 優先讀取網址中的資料
             if (window.location.hash.length > 1) {
-                try {
-                    data = decodeData(window.location.hash.substring(1));
-                } catch (e) {
-                    console.error("網址解析失敗，改用本地資料", e);
-                }
+                data = decodeData(window.location.hash.substring(1));
             }
             
             // 2. 如果網址沒資料，讀取本地儲存
@@ -428,19 +443,8 @@
                     } catch (e) {}
                 }
             }
-            
-            // 3. 兼容舊版資料
-            if (!data && localStorage.getItem('alcoholRun_maleNames')) {
-                data = {
-                    m: JSON.parse(localStorage.getItem('alcoholRun_maleNames') || "[]"),
-                    f: JSON.parse(localStorage.getItem('alcoholRun_femaleNames') || "[]"),
-                    a: localStorage.getItem('alcoholRun_boxA') || "",
-                    b: localStorage.getItem('alcoholRun_boxB') || "",
-                    c: localStorage.getItem('alcoholRun_boxC') || ""
-                };
-            }
 
-            // 4. 將資料填入畫面
+            // 3. 將資料填入畫面
             if (data) {
                 const maleInputs = document.querySelectorAll('#male-inputs input');
                 (data.m || []).forEach((name, index) => {
@@ -466,14 +470,20 @@
             saveAllData(); 
             const url = window.location.href;
             navigator.clipboard.writeText(url).then(() => {
-                alert("✅ 專屬網址已複製！\n\n請將此網址傳送到你的手機（或分享給朋友），打開後就會自動同步到目前最新的名單！");
+                alert("✅ 專屬壓縮網址已複製！\n\n因為採用了進階壓縮技術，這串網址已經被大幅縮短。請將此網址傳送到手機，打開後就會自動同步名單！");
             }).catch(err => {
                 alert("複製失敗，請手動複製瀏覽器上方的完整網址！");
             });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadAllData();
+            // 等待 LZString 載入完成後再執行讀取
+            if (typeof LZString !== 'undefined') {
+                loadAllData();
+            } else {
+                // 如果套件還沒載入完，稍微延遲一下
+                setTimeout(loadAllData, 500);
+            }
 
             // 綁定所有姓名輸入框、籤筒的自動儲存事件
             const allInputs = document.querySelectorAll('.name-list input, textarea');
