@@ -25,12 +25,12 @@
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            padding: 40px 20px;
+            padding: 30px 20px;
             border-radius: 20px;
             text-align: center;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             position: relative;
             overflow: hidden;
         }
@@ -38,7 +38,7 @@
         header::before {
             content: "🥂 🍸 🍷 🍻";
             position: absolute;
-            bottom: 10px;
+            bottom: -5px;
             left: 20px;
             color: rgba(255,255,255,0.3);
             font-size: 24px;
@@ -48,9 +48,47 @@
         h1 {
             margin: 0;
             color: #fff;
-            font-size: 36px;
+            font-size: 32px;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px #ff6b81;
             letter-spacing: 2px;
+        }
+
+        /* 分頁按鈕設計 */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: rgba(20, 20, 35, 0.5);
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            flex: 1;
+            min-width: 100px;
+        }
+        .tab-btn.active-tab {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .card {
@@ -72,7 +110,6 @@
             text-shadow: 0 0 8px rgba(255, 154, 158, 0.5);
         }
 
-        /* 鎖定男女名單無論 PC 或手機都保持一左一右 */
         .input-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -109,10 +146,6 @@
             box-shadow: 0 0 8px rgba(255, 154, 158, 0.4);
         }
 
-        .name-list input::placeholder {
-            color: rgba(255,255,255,0.5);
-        }
-
         button {
             background: linear-gradient(45deg, #ff416c, #ff4b2b);
             color: white;
@@ -127,26 +160,17 @@
             transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 4px 15px rgba(255, 65, 108, 0.4);
         }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 65, 108, 0.6);
-        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 65, 108, 0.6); }
 
         .btn-draw-action { background: linear-gradient(45deg, #f12711, #f5af19); box-shadow: 0 4px 15px rgba(245, 175, 25, 0.4); }
-        .btn-draw-action:hover { box-shadow: 0 6px 20px rgba(245, 175, 25, 0.6); }
         .btn-draw-combo { background: linear-gradient(45deg, #8E2DE2, #4A00E0); box-shadow: 0 4px 15px rgba(142, 45, 226, 0.4); }
-        .btn-draw-combo:hover { box-shadow: 0 6px 20px rgba(142, 45, 226, 0.6); }
+        .btn-adventure { background: linear-gradient(45deg, #11998e, #38ef7d); box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4); }
 
         .btn-settings {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: none;
             backdrop-filter: blur(5px);
-        }
-        .btn-settings:hover {
-            background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
         }
 
         .result-box {
@@ -172,7 +196,59 @@
 
         .team-title { font-weight: bold; font-size: 22px; margin-bottom: 12px; display: block; text-shadow: 0 0 5px currentColor; }
         .member-line { margin: 8px 0; font-size: 16px; }
+
+        /* 大冒險設定區塊 */
+        .adv-settings {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .adv-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .adv-row label {
+            font-weight: bold;
+            color: #ffb199;
+            min-width: 80px;
+        }
+        select {
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+        select option { background: #3a1c71; color: white; }
         
+        .level-group {
+            display: flex;
+            gap: 10px;
+        }
+        .level-btn {
+            margin-top: 0;
+            padding: 8px 20px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            box-shadow: none;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.6);
+            width: auto;
+        }
+        .level-btn.active {
+            background: linear-gradient(45deg, #f5af19, #f12711);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 2px 10px rgba(241, 39, 17, 0.4);
+        }
+
         /* Modal 樣式 */
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0;
@@ -186,10 +262,10 @@
             box-sizing: border-box;
         }
         .modal-content h2 { color: #ff9a9e; margin-top: 0; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 15px; }
-        .modal-content h3 { color: #a18cd1; margin-top: 25px; margin-bottom: 10px; }
+        .modal-content h3 { color: #a18cd1; margin-top: 25px; margin-bottom: 10px; font-size: 16px; }
         
         textarea {
-            width: 100%; height: 130px; padding: 12px; background: rgba(0,0,0,0.3);
+            width: 100%; height: 110px; padding: 12px; background: rgba(0,0,0,0.3);
             color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
             box-sizing: border-box; resize: vertical; font-size: 15px; line-height: 1.5;
         }
@@ -208,60 +284,142 @@
 <body>
 
     <header>
-        <h1>🍺 歡樂酒精路跑 🏃‍♂️💖</h1>
+        <h1>🍺 歡樂派對遊戲大廳 🏃‍♂️💖</h1>
     </header>
 
-    <!-- 分組系統 -->
-    <div class="card">
-        <h2>👥 隨機配對</h2>
-        <div class="input-grid">
-            <div class="name-list" id="male-inputs">
-                <h3>🕺 男生名單</h3>
-                <input type="text" value="阿文">
-                <input type="text" value="James">
-                <input type="text" value="MK">
-                <input type="text" value="姊姊">
-                <input type="text" value="史帝夫">
-                <input type="text" value="A紮男">
-                <input type="text" value="史迪">
-                <input type="text" value="Rich">
-                <input type="text" value="Aden">
-                <input type="text" placeholder="臨時加入(男)...">
+    <!-- 分頁導覽列 -->
+    <div class="tabs">
+        <button class="tab-btn active-tab" id="btn-tab1" onclick="switchTab('tab1')">🍻 酒精路跑</button>
+        <button class="tab-btn" id="btn-tab2" onclick="switchTab('tab2')">🌪️ 大風吹分組</button>
+        <button class="tab-btn" id="btn-tab3" onclick="switchTab('tab3')">🔥 大冒險</button>
+    </div>
+
+    <!-- ==================== 分頁 1: 酒精路跑 ==================== -->
+    <div id="tab1" class="tab-content" style="display: block;">
+        <!-- 分組系統 -->
+        <div class="card">
+            <h2>👥 隨機配對</h2>
+            <div class="input-grid">
+                <div class="name-list" id="male-inputs">
+                    <h3>🕺 男生名單</h3>
+                    <input type="text" value="阿文">
+                    <input type="text" value="James">
+                    <input type="text" value="MK">
+                    <input type="text" value="姊姊">
+                    <input type="text" value="史帝夫">
+                    <input type="text" value="A紮男">
+                    <input type="text" value="史迪">
+                    <input type="text" value="Rich">
+                    <input type="text" value="Aden">
+                    <input type="text" placeholder="臨時加入(男)...">
+                </div>
+                <div class="name-list" id="female-inputs">
+                    <h3>💃 女生名單</h3>
+                    <input type="text" value="Crystal">
+                    <input type="text" value="琳琳">
+                    <input type="text" value="貝拉">
+                    <input type="text" value="小BOSS">
+                    <input type="text" value="蜜糖">
+                    <input type="text" value="33">
+                    <input type="text" value="奇奇">
+                    <input type="text" value="Mia">
+                    <input type="text" value="Cici">
+                    <input type="text" placeholder="臨時加入(女)...">
+                </div>
             </div>
-            <div class="name-list" id="female-inputs">
-                <h3>💃 女生名單</h3>
-                <input type="text" value="Crystal">
-                <input type="text" value="琳琳">
-                <input type="text" value="貝拉">
-                <input type="text" value="小BOSS">
-                <input type="text" value="蜜糖">
-                <input type="text" value="33">
-                <input type="text" value="奇奇">
-                <input type="text" value="Mia">
-                <input type="text" value="Cici">
-                <input type="text" placeholder="臨時加入(女)...">
-            </div>
+            <button onclick="generateTeams()">一鍵隨機分隊</button>
+            <div id="team-result" class="result-box" style="display: none;"></div>
         </div>
 
-        <button onclick="generateTeams()">一鍵隨機分隊</button>
-        <div id="team-result" class="result-box" style="display: none;"></div>
+        <!-- 行動關卡 -->
+        <div class="card">
+            <h2>🅰️ 下一關遊戲籤</h2>
+            <button class="btn-draw-action" onclick="drawGame('boxA', 'resultA')">🎲 抽取 行動關卡任務</button>
+            <div id="resultA" class="result-box" style="display: none;"></div>
+        </div>
+
+        <!-- 喝酒遊戲 + 盲飲酒單 -->
+        <div class="card">
+            <h2>🅱️ 喝酒遊戲+抽酒種</h2>
+            <button class="btn-draw-combo" onclick="drawCombinedGame('boxB', 'boxC', 'resultB')">🥂 一鍵雙抽：派對遊戲 ＆ 專屬酒單</button>
+            <div id="resultB" class="result-box" style="display: none;"></div>
+        </div>
     </div>
 
-    <!-- 行動關卡 -->
-    <div class="card">
-        <h2>🅰️ 下一關遊戲籤</h2>
-        <button class="btn-draw-action" onclick="drawGame('boxA', 'resultA')">🎲 抽取 行動關卡任務</button>
-        <div id="resultA" class="result-box" style="display: none;"></div>
+    <!-- ==================== 分頁 2: 大風吹分組 ==================== -->
+    <div id="tab2" class="tab-content">
+        <div class="card">
+            <h2>🌪️ 大風吹隨機配對 (共 10 隊)</h2>
+            <div class="input-grid">
+                <div class="name-list" id="male-inputs-2">
+                    <h3>🕺 男生名單</h3>
+                    <input type="text" value="男1">
+                    <input type="text" value="男2">
+                    <input type="text" value="男3">
+                    <input type="text" value="男4">
+                    <input type="text" value="男5">
+                    <input type="text" value="男6">
+                    <input type="text" value="男7">
+                    <input type="text" value="男8">
+                    <input type="text" value="男9">
+                    <input type="text" value="男10">
+                </div>
+                <div class="name-list" id="female-inputs-2">
+                    <h3>💃 女生名單</h3>
+                    <input type="text" value="女1">
+                    <input type="text" value="女2">
+                    <input type="text" value="女3">
+                    <input type="text" value="女4">
+                    <input type="text" value="女5">
+                    <input type="text" value="女6">
+                    <input type="text" value="女7">
+                    <input type="text" value="女8">
+                    <input type="text" value="女9">
+                    <input type="text" value="女10">
+                </div>
+            </div>
+            <button class="btn-draw-combo" onclick="generateWindTeams()">🌪️ 男女隨機分組</button>
+            <div id="wind-team-result" class="result-box" style="display: none;"></div>
+        </div>
     </div>
 
-    <!-- 喝酒遊戲 + 盲飲酒單 -->
-    <div class="card">
-        <h2>🅱️ 喝酒遊戲+抽酒種</h2>
-        <button class="btn-draw-combo" onclick="drawCombinedGame('boxB', 'boxC', 'resultB')">🥂 一鍵雙抽：派對遊戲 ＆ 專屬酒單</button>
-        <div id="resultB" class="result-box" style="display: none;"></div>
+    <!-- ==================== 分頁 3: 大冒險 ==================== -->
+    <div id="tab3" class="tab-content">
+        <div class="card">
+            <h2>🔥 大冒險任務抽取</h2>
+            
+            <div class="adv-settings">
+                <div class="adv-row">
+                    <label>總對數：</label>
+                    <select id="advTeamCount">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8" selected>8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                <div class="adv-row">
+                    <label>任務等級：</label>
+                    <div class="level-group">
+                        <button class="level-btn" id="lvl-low" onclick="setAdvLevel('low')">低</button>
+                        <button class="level-btn active" id="lvl-mid" onclick="setAdvLevel('mid')">中</button>
+                        <button class="level-btn" id="lvl-high" onclick="setAdvLevel('high')">高</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-adventure" onclick="drawAdventure()">🔥 大冒險</button>
+            <div id="adv-result" class="result-box" style="display: none; text-align: center;"></div>
+        </div>
     </div>
 
-    <!-- 最下方設定與雲端狀態 -->
+    <!-- ==================== 底部固定區域 ==================== -->
     <div class="action-bar">
         <button class="btn-settings" onclick="openSettings()" style="margin-top: 0; flex: 1;">⚙️ 進入後台：編輯遊戲與酒單</button>
         <div class="sync-status-box" id="syncStatus">
@@ -269,53 +427,65 @@
         </div>
     </div>
 
-    <!-- 編輯內容彈出視窗 (Modal) -->
+    <!-- ==================== 編輯內容彈出視窗 (Modal) ==================== -->
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <h2>⚙️ 編輯內容 (輸入即自動儲存)</h2>
-            <h3>🅰️ 行動關卡籤筒</h3>
+            
+            <h3 style="color:#ffb199; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom:5px;">🍻 【分頁 1】酒精路跑題庫</h3>
+            <h3>🅰️ 下一關遊戲籤</h3>
             <textarea id="boxA">1 一人戴眼罩，另一人只能透過「扶肩膀」或「牽手」引導到下一間7-11。
-2 隊內選出二位公主抱到下一關。(體力不支可以換人如全員男孩放棄需每人喝一杯)
-3 全隊男女手牽手到下一關
-4 全隊男女交錯搭火車到下一關
-5 拿一根吸管用嘴巴和鼻子夾住，如果中途吸管掉下來，懲罰蛙跳5下或開合跳10下
-6 親親大亂鬥！全隊男女親親五秒「各自分組」不得與本來的伴侶執行遊戲
-7 隊內隨機配對，男生背女生到下一關。
-8 隊內剪刀石頭布，最贏那位為國王可指定任務
-9 愛上鐵達尼！隊內挑選一男一女擺出鐵達尼經典姿勢動作一路到下一關，路程中不能分開
-10 每隊自行選出一位女孩牽二位男孩到下一關
-11 每隊自行選出一位男孩牽二位女孩到下一關
-12 抽到此簽，隊伍男男互牽 女女互牽到下一關
-12 男生靠牆坐空氣椅，女生坐在男生的腿上維持 15 秒；或是全隊男女交錯坐前一人的腿上形成人肉椅子。
-13 隊長福利可自由選對方隊伍一位做任何事
-14 騎馬打仗二位男孩當馬兒，選一位女孩上馬到下一關
-15 隊內選出二位女孩，蒙眼選出二位男生擁抱10秒
-16 用繩子或膠帶將一男一女的腳綁在一起(二對)，且移動過程中兩人必須手牽手，走到指定區域。</textarea>
-            <h3>🅱️ 駐點喝酒遊戲籤筒</h3>
+2 隊內選出二位公主抱到下一關。
+3 全隊男女手牽手到下一關</textarea>
+            <h3>🅱️ 喝酒遊戲籤筒</h3>
             <textarea id="boxB">1 五、十、十五 兩人一組，喊中數字的人贏，輸的喝。
-2 我有你沒有 輪流說一件自己「沒做過」的事，有做過的人就喝。
-3 黑白配 經典手指方向遊戲，二人一組輸的的人喝。
-4 人緣好...大家數到三，指一個人，被指最多的人喝。
-5 大老二(簡易版)每人抽一張牌，點數最小的三個人負責喝。
-6 成語接龍 上一家的最後一字接下一家的第一字，斷掉就喝。
-7 看誰比較快 所有人一起乾杯，最後放下的那個人要加碼喝。
-8 抓鬼遊戲 隊長當鬼，鬼做什麼動作大家要跟著做，最後做的與"隊長"一起喝。
-9 國王遊戲 抽籤當國王，國王可以指名 1~6 號中的任意組合喝。
-10 隊長指定敵對二位喝</textarea>
+2 我有你沒有 輪流說一件自己「沒做過」的事，有做過的人就喝。</textarea>
             <h3>🍻 7-11 盲飲酒單籤筒</h3>
             <textarea id="boxC">1 低酒精飲料（0.5% ~ 5%）
-2 低酒精飲料（0.5% ~ 5%）
-3 低酒精飲料（0.5% ~ 5%）
-4 中酒精飲料（6% ~ 15%）
-5 中酒精飲料（6% ~ 15%）
-6 高酒精烈酒（20% ~ 58%+）</textarea>
+2 中酒精飲料（6% ~ 15%）
+3 高酒精烈酒（20% ~ 58%+）</textarea>
+            
+            <h3 style="color:#ffb199; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom:5px; margin-top:30px;">🔥 【分頁 3】大冒險任務題庫</h3>
+            <h3>🟢 大冒險 - 低 (Low)</h3>
+            <textarea id="advLow">跟指定對象深情對視 10 秒
+原地轉 5 圈後金雞獨立 5 秒</textarea>
+            <h3>🟡 大冒險 - 中 (Mid)</h3>
+            <textarea id="advMid">牽著指定對象的手走到下一關
+對指定對象唱一首情歌</textarea>
+            <h3>🔴 大冒險 - 高 (High)</h3>
+            <textarea id="advHigh">公主抱指定對象並深蹲 3 下
+安全之吻 10 秒</textarea>
+
             <button onclick="closeSettings()" style="background: linear-gradient(45deg, #11998e, #38ef7d); margin-top: 25px;">✅ 完成並關閉</button>
         </div>
     </div>
 
     <script>
         // ==========================================
-        // 1. Firebase 初始化 (已填入你的專屬金鑰)
+        // UI 切換邏輯 (分頁與難易度選擇)
+        // ==========================================
+        let currentAdvLevel = 'mid'; // 預設難度為中
+
+        function switchTab(tabId) {
+            // 隱藏所有分頁
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            // 移除所有按鈕的 active 狀態
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active-tab'));
+            
+            // 顯示選中分頁
+            document.getElementById(tabId).style.display = 'block';
+            document.getElementById('btn-' + tabId).classList.add('active-tab');
+        }
+
+        function setAdvLevel(level) {
+            currentAdvLevel = level;
+            // 更新 UI 狀態
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('lvl-' + level).classList.add('active');
+        }
+
+        // ==========================================
+        // Firebase 初始化與資料同步
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAicnJwTpTewbmyxQBcCb-Cu-0Hcupry88",
@@ -333,7 +503,7 @@
         try {
             firebase.initializeApp(firebaseConfig);
             const db = firebase.database();
-            dataRef = db.ref('alcoholRunData');
+            dataRef = db.ref('alcoholRunDataV2'); // 更新路徑避免覆蓋舊版
             
             document.getElementById('syncStatus').innerHTML = '🟢 雲端即時同步中';
             document.getElementById('syncStatus').style.color = '#7bed9f';
@@ -343,9 +513,6 @@
             document.getElementById('syncStatus').style.color = '#ff6b81';
         }
 
-        // ==========================================
-        // 2. Firebase 資料讀取與儲存邏輯
-        // ==========================================
         let saveTimeout = null;
 
         function triggerSave() {
@@ -356,15 +523,22 @@
             document.getElementById('syncStatus').style.color = '#f5af19';
 
             saveTimeout = setTimeout(() => {
-                const maleInputs = Array.from(document.querySelectorAll('#male-inputs input')).map(i => i.value);
-                const femaleInputs = Array.from(document.querySelectorAll('#female-inputs input')).map(i => i.value);
-                
                 const data = {
-                    m: maleInputs,
-                    f: femaleInputs,
+                    // 分頁 1 名單
+                    m1: Array.from(document.querySelectorAll('#male-inputs input')).map(i => i.value),
+                    f1: Array.from(document.querySelectorAll('#female-inputs input')).map(i => i.value),
+                    // 分頁 2 名單
+                    m2: Array.from(document.querySelectorAll('#male-inputs-2 input')).map(i => i.value),
+                    f2: Array.from(document.querySelectorAll('#female-inputs-2 input')).map(i => i.value),
+                    
+                    // 題庫儲存
                     a: document.getElementById('boxA').value,
                     b: document.getElementById('boxB').value,
                     c: document.getElementById('boxC').value,
+                    advLow: document.getElementById('advLow').value,
+                    advMid: document.getElementById('advMid').value,
+                    advHigh: document.getElementById('advHigh').value,
+                    
                     timestamp: Date.now()
                 };
 
@@ -378,57 +552,57 @@
         if (dataRef) {
             dataRef.on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (data) {
-                    updateUI(data);
-                }
+                if (data) updateUI(data);
             });
         }
 
         function updateUI(data) {
-            // 男生名單更新 (防衝突機制：若正處於輸入焦點則不覆蓋)
-            const maleInputs = document.querySelectorAll('#male-inputs input');
-            (data.m || []).forEach((name, index) => {
-                if (maleInputs[index] && document.activeElement !== maleInputs[index]) {
-                    maleInputs[index].value = name;
-                }
-            });
+            // 輔助函式：更新陣列資料到指定的 input 群組，若被 focused 則跳過
+            const fillInputs = (selector, dataArray) => {
+                const inputs = document.querySelectorAll(selector);
+                (dataArray || []).forEach((val, index) => {
+                    if (inputs[index] && document.activeElement !== inputs[index]) {
+                        inputs[index].value = val;
+                    }
+                });
+            };
+            
+            fillInputs('#male-inputs input', data.m1);
+            fillInputs('#female-inputs input', data.f1);
+            fillInputs('#male-inputs-2 input', data.m2);
+            fillInputs('#female-inputs-2 input', data.f2);
 
-            // 女生名單更新
-            const femaleInputs = document.querySelectorAll('#female-inputs input');
-            (data.f || []).forEach((name, index) => {
-                if (femaleInputs[index] && document.activeElement !== femaleInputs[index]) {
-                    femaleInputs[index].value = name;
-                }
-            });
+            // 輔助函式：更新 textarea 題庫
+            const fillTextarea = (id, val) => {
+                const el = document.getElementById(id);
+                if(val && document.activeElement !== el) el.value = val;
+            };
 
-            // 籤筒更新
-            const boxA = document.getElementById('boxA');
-            if(data.a && document.activeElement !== boxA) boxA.value = data.a;
-
-            const boxB = document.getElementById('boxB');
-            if(data.b && document.activeElement !== boxB) boxB.value = data.b;
-
-            const boxC = document.getElementById('boxC');
-            if(data.c && document.activeElement !== boxC) boxC.value = data.c;
+            fillTextarea('boxA', data.a);
+            fillTextarea('boxB', data.b);
+            fillTextarea('boxC', data.c);
+            fillTextarea('advLow', data.advLow);
+            fillTextarea('advMid', data.advMid);
+            fillTextarea('advHigh', data.advHigh);
         }
 
-        // ==========================================
-        // 3. 基礎事件綁定與遊戲邏輯
-        // ==========================================
+        // 綁定儲存事件
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.name-list input, textarea').forEach(input => {
-                input.addEventListener('input', triggerSave);
+            document.querySelectorAll('input, textarea').forEach(el => {
+                el.addEventListener('input', triggerSave);
             });
         });
 
+        // ==========================================
         // Modal 控制
+        // ==========================================
         function openSettings() { document.getElementById('settingsModal').style.display = 'block'; }
         function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
         window.onclick = function(event) {
             if (event.target == document.getElementById('settingsModal')) closeSettings();
         }
 
-        // 遊戲演算法
+        // 共用洗牌函式
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -437,12 +611,14 @@
             return array;
         }
 
+        // ==========================================
+        // 分頁 1: 酒精路跑分組與遊戲邏輯
+        // ==========================================
         function selectCaptain(team) {
             if(team.length === 0) return 0;
             let maleIndices = [];
             let weights = [], totalWeight = 0;
             
-            // 先過濾出男生
             for(let i = 0; i < team.length; i++) {
                 if(team[i].gender === 'M') {
                     maleIndices.push(i);
@@ -451,8 +627,6 @@
                     else { weights.push(100); totalWeight += 100; }
                 }
             }
-            
-            // 防呆：如果隊伍剛好沒有男生（正常情況下不會發生），則隨機選一人
             if(maleIndices.length === 0) return Math.floor(Math.random() * team.length);
 
             let randomValue = Math.random() * totalWeight, currentSum = 0;
@@ -485,12 +659,10 @@
             let t1_m = [], t2_m = [];
             let t1_f = [], t2_f = [];
 
-            // 特別處理：史帝夫與蜜糖有 70% 機率在同一隊
             let hasSteve = malePool.includes('史帝夫');
             let hasHoney = femalePool.includes('蜜糖');
 
             if (hasSteve && hasHoney) {
-                // 先將他們從池子裡移除
                 malePool = malePool.filter(n => n !== '史帝夫');
                 femalePool = femalePool.filter(n => n !== '蜜糖');
                 
@@ -506,11 +678,9 @@
                 }
             }
 
-            // 剩下的人隨機打亂
             malePool = shuffleArray(malePool); 
             femalePool = shuffleArray(femalePool);
 
-            // 計算剩餘位置總需求
             let totalMales = malePool.length + t1_m.length + t2_m.length;
             let totalFemales = femalePool.length + t1_f.length + t2_f.length;
 
@@ -521,27 +691,20 @@
             let targetT1Females = Math.floor(totalFemales / 2);
             let targetT2Females = totalFemales - targetT1Females;
             
-            // 人數平衡分配邏輯
             if (targetT1Males > targetT2Males) { targetT1Females = Math.floor(totalFemales / 2); targetT2Females = totalFemales - targetT1Females; } 
             else if (targetT2Males > targetT1Males) { targetT2Females = Math.floor(totalFemales / 2); targetT1Females = totalFemales - targetT2Females; } 
             else if (totalFemales % 2 !== 0 && Math.random() > 0.5) [targetT1Females, targetT2Females] = [targetT2Females, targetT1Females];
 
-            // 填補男生
             while (malePool.length > 0) {
                 if (t1_m.length < targetT1Males) t1_m.push(malePool.pop());
                 else if (t2_m.length < targetT2Males) t2_m.push(malePool.pop());
-                else {
-                    (t1_m.length <= t2_m.length) ? t1_m.push(malePool.pop()) : t2_m.push(malePool.pop());
-                }
+                else { (t1_m.length <= t2_m.length) ? t1_m.push(malePool.pop()) : t2_m.push(malePool.pop()); }
             }
 
-            // 填補女生
             while (femalePool.length > 0) {
                 if (t1_f.length < targetT1Females) t1_f.push(femalePool.pop());
                 else if (t2_f.length < targetT2Females) t2_f.push(femalePool.pop());
-                else {
-                    (t1_f.length <= t2_f.length) ? t1_f.push(femalePool.pop()) : t2_f.push(femalePool.pop());
-                }
+                else { (t1_f.length <= t2_f.length) ? t1_f.push(femalePool.pop()) : t2_f.push(femalePool.pop()); }
             }
 
             let team1 = [...t1_m.map(n => ({name: n, gender: 'M'})), ...t1_f.map(n => ({name: n, gender: 'F'}))];
@@ -574,6 +737,89 @@
                 <span style="color:#a8c0ff; font-size: 20px; font-weight: bold; display:block; margin: 10px 0 20px 0;">${items1[Math.floor(Math.random() * items1.length)]}</span>
                 🍻 <strong>搭配酒單：</strong> <br>
                 <span style="color:#ff9a9e; font-size: 22px; font-weight: bold; text-shadow: 0 0 8px rgba(255,154,158,0.5); display:block; margin-top: 10px;">${items2[Math.floor(Math.random() * items2.length)]}</span>
+            `;
+        }
+
+        // ==========================================
+        // 分頁 2: 大風吹分組邏輯
+        // ==========================================
+        function generateWindTeams() {
+            let malePool = Array.from(document.querySelectorAll('#male-inputs-2 input')).map(i => i.value).filter(v => v.trim() !== '');
+            let femalePool = Array.from(document.querySelectorAll('#female-inputs-2 input')).map(i => i.value).filter(v => v.trim() !== '');
+            
+            malePool = shuffleArray(malePool);
+            femalePool = shuffleArray(femalePool);
+
+            let htmlStr = '';
+            // 產出固定 10 隊
+            for (let i = 0; i < 10; i++) {
+                let m = malePool[i] || "無(空缺)";
+                let f = femalePool[i] || "無(空缺)";
+                htmlStr += `
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; margin-bottom: 8px; border-radius: 8px; border-left: 3px solid #7bed9f; display:flex; justify-content:space-between; align-items:center;">
+                        <strong style="color: #ffb199; font-size: 18px;">第 ${i + 1} 隊</strong>
+                        <span>🕺 ${m} &nbsp; 💖 &nbsp; 💃 ${f}</span>
+                    </div>
+                `;
+            }
+
+            const resultDiv = document.getElementById('wind-team-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = htmlStr;
+        }
+
+        // ==========================================
+        // 分頁 3: 大冒險抽籤邏輯
+        // ==========================================
+        function drawAdventure() {
+            // 取得所選難易度的題庫
+            let textareaId = '';
+            let levelTitle = '';
+            let color = '';
+            
+            if (currentAdvLevel === 'low') {
+                textareaId = 'advLow';
+                levelTitle = '🟢 輕度冒險';
+                color = '#38ef7d';
+            } else if (currentAdvLevel === 'mid') {
+                textareaId = 'advMid';
+                levelTitle = '🟡 中度冒險';
+                color = '#f5af19';
+            } else {
+                textareaId = 'advHigh';
+                levelTitle = '🔴 深度冒險';
+                color = '#ff416c';
+            }
+
+            const items = document.getElementById(textareaId).value.split('\n').filter(i => i.trim() !== '');
+            const resultDiv = document.getElementById('adv-result');
+            resultDiv.style.display = 'block';
+            
+            if(items.length === 0) {
+                resultDiv.innerHTML = `<span style="color:#ff6b81;">該難度籤筒為空，請至設定補充內容！</span>`;
+                return;
+            }
+
+            // 隨機抽取任務
+            const task = items[Math.floor(Math.random() * items.length)];
+            
+            // 根據選單隨機抽出隊伍編號 (1 ~ 所選對數)
+            const teamCount = parseInt(document.getElementById('advTeamCount').value, 10);
+            const targetTeam = Math.floor(Math.random() * teamCount) + 1;
+
+            resultDiv.innerHTML = `
+                <div style="margin-bottom: 15px; font-size: 16px; color: rgba(255,255,255,0.7);">
+                    難度：<strong style="color:${color};">${levelTitle}</strong>
+                </div>
+                <div style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">
+                    請 <span style="color:#a8c0ff; font-size: 30px; text-shadow: 0 0 10px #a8c0ff;">第 ${targetTeam} 隊</span> 出列！
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; border: 1px solid ${color};">
+                    <div style="font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">執行任務：</div>
+                    <div style="color: ${color}; font-size: 22px; font-weight: bold; line-height: 1.4;">
+                        ${task}
+                    </div>
+                </div>
             `;
         }
     </script>
