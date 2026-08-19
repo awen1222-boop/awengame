@@ -213,7 +213,7 @@
 
     <!-- 分組系統 -->
     <div class="card">
-        <h2>👥 浪漫隨機配對分隊</h2>
+        <h2>👥 隨機配對</h2>
         <div class="input-grid">
             <div class="name-list" id="male-inputs">
                 <h3>🕺 男生名單</h3>
@@ -243,20 +243,20 @@
             </div>
         </div>
 
-        <button onclick="generateTeams()">一鍵心跳隨機分隊</button>
+        <button onclick="generateTeams()">一鍵隨機分隊</button>
         <div id="team-result" class="result-box" style="display: none;"></div>
     </div>
 
     <!-- 行動關卡 -->
     <div class="card">
-        <h2>🅰️ 聯誼行動籤 (移動關卡)</h2>
+        <h2>🅰️ 下一關遊戲籤</h2>
         <button class="btn-draw-action" onclick="drawGame('boxA', 'resultA')">🎲 抽取 行動關卡任務</button>
         <div id="resultA" class="result-box" style="display: none;"></div>
     </div>
 
     <!-- 喝酒遊戲 + 盲飲酒單 -->
     <div class="card">
-        <h2>🅱️ 駐點心醉挑戰 (遊戲 + 盲飲)</h2>
+        <h2>🅱️ 喝酒遊戲+抽酒種</h2>
         <button class="btn-draw-combo" onclick="drawCombinedGame('boxB', 'boxC', 'resultB')">🥂 一鍵雙抽：派對遊戲 ＆ 專屬酒單</button>
         <div id="resultB" class="result-box" style="display: none;"></div>
     </div>
@@ -439,18 +439,28 @@
 
         function selectCaptain(team) {
             if(team.length === 0) return 0;
+            let maleIndices = [];
             let weights = [], totalWeight = 0;
+            
+            // 先過濾出男生
             for(let i = 0; i < team.length; i++) {
-                let name = team[i].name.trim();
-                if(name.toLowerCase() === 'james' || name.toUpperCase() === 'MK') { weights.push(120); totalWeight += 120; } 
-                else { weights.push(100); totalWeight += 100; }
+                if(team[i].gender === 'M') {
+                    maleIndices.push(i);
+                    let name = team[i].name.trim();
+                    if(name.toLowerCase() === 'james' || name.toUpperCase() === 'MK') { weights.push(120); totalWeight += 120; } 
+                    else { weights.push(100); totalWeight += 100; }
+                }
             }
+            
+            // 防呆：如果隊伍剛好沒有男生（正常情況下不會發生），則隨機選一人
+            if(maleIndices.length === 0) return Math.floor(Math.random() * team.length);
+
             let randomValue = Math.random() * totalWeight, currentSum = 0;
-            for(let i = 0; i < team.length; i++) {
-                currentSum += weights[i];
-                if(randomValue <= currentSum) return i;
+            for(let j = 0; j < maleIndices.length; j++) {
+                currentSum += weights[j];
+                if(randomValue <= currentSum) return maleIndices[j];
             }
-            return 0;
+            return maleIndices[0];
         }
 
         function formatTeamHTML(team, colorClass, title) {
@@ -471,19 +481,71 @@
         function generateTeams() {
             let malePool = Array.from(document.querySelectorAll('#male-inputs input')).map(i => i.value).filter(v => v.trim() !== '');
             let femalePool = Array.from(document.querySelectorAll('#female-inputs input')).map(i => i.value).filter(v => v.trim() !== '');
-            malePool = shuffleArray(malePool); femalePool = shuffleArray(femalePool);
-
-            let t1MaleCount = Math.floor(malePool.length / 2), t2MaleCount = malePool.length - t1MaleCount;
-            if (malePool.length % 2 !== 0 && Math.random() > 0.5) [t1MaleCount, t2MaleCount] = [t2MaleCount, t1MaleCount];
-            let t1FemaleCount = Math.floor(femalePool.length / 2), t2FemaleCount = femalePool.length - t1FemaleCount;
             
-            if (t1MaleCount > t2MaleCount) { t1FemaleCount = Math.floor(femalePool.length / 2); t2FemaleCount = femalePool.length - t1FemaleCount; } 
-            else if (t2MaleCount > t1MaleCount) { t2FemaleCount = Math.floor(femalePool.length / 2); t1FemaleCount = femalePool.length - t2FemaleCount; } 
-            else if (femalePool.length % 2 !== 0 && Math.random() > 0.5) [t1FemaleCount, t2FemaleCount] = [t2FemaleCount, t1FemaleCount];
+            let t1_m = [], t2_m = [];
+            let t1_f = [], t2_f = [];
 
-            let t1_m = malePool.slice(0, t1MaleCount).map(n => ({name: n, gender: 'M'})), t2_m = malePool.slice(t1MaleCount).map(n => ({name: n, gender: 'M'}));
-            let t1_f = femalePool.slice(0, t1FemaleCount).map(n => ({name: n, gender: 'F'})), t2_f = femalePool.slice(t1FemaleCount).map(n => ({name: n, gender: 'F'}));
-            let team1 = [...t1_m, ...t1_f], team2 = [...t2_m, ...t2_f];
+            // 特別處理：史帝夫與蜜糖有 70% 機率在同一隊
+            let hasSteve = malePool.includes('史帝夫');
+            let hasHoney = femalePool.includes('蜜糖');
+
+            if (hasSteve && hasHoney) {
+                // 先將他們從池子裡移除
+                malePool = malePool.filter(n => n !== '史帝夫');
+                femalePool = femalePool.filter(n => n !== '蜜糖');
+                
+                let sameTeam = Math.random() < 0.7;
+                let targetTeamForSteve = Math.random() < 0.5 ? 1 : 2;
+                
+                if (targetTeamForSteve === 1) {
+                    t1_m.push('史帝夫');
+                    sameTeam ? t1_f.push('蜜糖') : t2_f.push('蜜糖');
+                } else {
+                    t2_m.push('史帝夫');
+                    sameTeam ? t2_f.push('蜜糖') : t1_f.push('蜜糖');
+                }
+            }
+
+            // 剩下的人隨機打亂
+            malePool = shuffleArray(malePool); 
+            femalePool = shuffleArray(femalePool);
+
+            // 計算剩餘位置總需求
+            let totalMales = malePool.length + t1_m.length + t2_m.length;
+            let totalFemales = femalePool.length + t1_f.length + t2_f.length;
+
+            let targetT1Males = Math.floor(totalMales / 2);
+            let targetT2Males = totalMales - targetT1Males;
+            if (totalMales % 2 !== 0 && Math.random() > 0.5) [targetT1Males, targetT2Males] = [targetT2Males, targetT1Males];
+
+            let targetT1Females = Math.floor(totalFemales / 2);
+            let targetT2Females = totalFemales - targetT1Females;
+            
+            // 人數平衡分配邏輯
+            if (targetT1Males > targetT2Males) { targetT1Females = Math.floor(totalFemales / 2); targetT2Females = totalFemales - targetT1Females; } 
+            else if (targetT2Males > targetT1Males) { targetT2Females = Math.floor(totalFemales / 2); targetT1Females = totalFemales - targetT2Females; } 
+            else if (totalFemales % 2 !== 0 && Math.random() > 0.5) [targetT1Females, targetT2Females] = [targetT2Females, targetT1Females];
+
+            // 填補男生
+            while (malePool.length > 0) {
+                if (t1_m.length < targetT1Males) t1_m.push(malePool.pop());
+                else if (t2_m.length < targetT2Males) t2_m.push(malePool.pop());
+                else {
+                    (t1_m.length <= t2_m.length) ? t1_m.push(malePool.pop()) : t2_m.push(malePool.pop());
+                }
+            }
+
+            // 填補女生
+            while (femalePool.length > 0) {
+                if (t1_f.length < targetT1Females) t1_f.push(femalePool.pop());
+                else if (t2_f.length < targetT2Females) t2_f.push(femalePool.pop());
+                else {
+                    (t1_f.length <= t2_f.length) ? t1_f.push(femalePool.pop()) : t2_f.push(femalePool.pop());
+                }
+            }
+
+            let team1 = [...t1_m.map(n => ({name: n, gender: 'M'})), ...t1_f.map(n => ({name: n, gender: 'F'}))];
+            let team2 = [...t2_m.map(n => ({name: n, gender: 'M'})), ...t2_f.map(n => ({name: n, gender: 'F'}))];
 
             if(team1.length > 0) team1[selectCaptain(team1)].isCaptain = true;
             if(team2.length > 0) team2[selectCaptain(team2)].isCaptain = true;
