@@ -769,7 +769,7 @@
         }
 
         // ==========================================
-        // 分頁 3: 大冒險抽籤邏輯
+        // 分頁 3: 大冒險抽籤邏輯 (隨機抽出複數隊伍)
         // ==========================================
         function drawAdventure() {
             // 取得所選難易度的題庫
@@ -803,16 +803,36 @@
             // 隨機抽取任務
             const task = items[Math.floor(Math.random() * items.length)];
             
-            // 根據選單隨機抽出隊伍編號 (1 ~ 所選對數)
+            // 隨機決定數量與隨機選取隊伍
             const teamCount = parseInt(document.getElementById('advTeamCount').value, 10);
-            const targetTeam = Math.floor(Math.random() * teamCount) + 1;
+            
+            // 1. 隨機決定這次要抽出「幾隊」(範圍：1 ~ teamCount)
+            const numTeamsToDraw = Math.floor(Math.random() * teamCount) + 1;
+            
+            // 2. 建立一個包含所有隊伍編號的陣列 [1, 2, 3... teamCount]
+            let allTeams = [];
+            for (let i = 1; i <= teamCount; i++) {
+                allTeams.push(i);
+            }
+            
+            // 3. 將陣列隨機打亂 (洗牌)
+            for (let i = allTeams.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allTeams[i], allTeams[j]] = [allTeams[j], allTeams[i]];
+            }
+            
+            // 4. 取出前 numTeamsToDraw 個隊伍，並由小到大排序以便閱讀
+            let selectedTeams = allTeams.slice(0, numTeamsToDraw).sort((a, b) => a - b);
+            
+            // 5. 組合顯示的文字 (例如：第 1、4、5 隊)
+            let teamsDisplay = selectedTeams.map(t => `第 ${t} 隊`).join('、');
 
             resultDiv.innerHTML = `
                 <div style="margin-bottom: 15px; font-size: 16px; color: rgba(255,255,255,0.7);">
                     難度：<strong style="color:${color};">${levelTitle}</strong>
                 </div>
                 <div style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">
-                    請 <span style="color:#a8c0ff; font-size: 30px; text-shadow: 0 0 10px #a8c0ff;">第 ${targetTeam} 隊</span> 出列！
+                    請 <span style="color:#a8c0ff; font-size: 30px; text-shadow: 0 0 10px #a8c0ff;">${teamsDisplay}</span> 出列！
                 </div>
                 <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; border: 1px solid ${color};">
                     <div style="font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">執行任務：</div>
